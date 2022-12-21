@@ -11,26 +11,6 @@ public protocol DataWriterDelegate: AnyObject {
     func writer(_ writer: DataWriter, errorOccurredWhenWrite error: PlistError)
 }
 
-public struct FilePath {
-    let path: String
-    init(path: String) {
-        self.path = path
-    }
-    
-    func writeData(_ data: Data) throws {
-        createFileIfNeeded()
-        try data.write(to: URL(filePath: path, directoryHint: .notDirectory))
-    }
-    
-    private func createFileIfNeeded() {
-        let fileManager = FileManager.default
-        var isDir: ObjCBool = false
-        if !fileManager.fileExists(atPath: path, isDirectory: &isDir) || isDir.boolValue {
-            fileManager.createFile(atPath: path, contents: nil)
-        }
-    }
-}
-
 public let plist_writer_queue = "com.ge.plist.write.queue"
 public final class DataWriter {
     public let path: FilePath
@@ -100,7 +80,9 @@ public final class DataWriter {
     }
     
     private func _runloopCallout(_ observer: CFRunLoopObserver!, _ activity: CFRunLoopActivity) {
-        writeSignal.signal()
+        if isWaitToWrite, writeSignal.signal() > 1 {
+            writeSignal.wait()
+        }
     }
     
     private func removeRunloopObserver() {
@@ -111,8 +93,8 @@ public final class DataWriter {
     
     private func closeWriter() {
         _isOpened = false
-        if isWaitToWrite {
-            writeSignal.signal()
+        if isWaitToWrite, writeSignal.signal() > 1 {
+            writeSignal.wait()
         }
     }
     

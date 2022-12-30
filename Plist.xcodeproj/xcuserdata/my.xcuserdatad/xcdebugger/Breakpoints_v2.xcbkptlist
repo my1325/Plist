@@ -21,16 +21,16 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "DDEE38D1-AD5A-4129-AA6B-6219AC3AE5EB"
-            shouldBeEnabled = "No"
+            uuid = "8ED85A8B-30AA-419D-BBB5-77495E7E6E6B"
+            shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "Plist/ViewController.swift"
+            filePath = "Plist/Plist/DataWriter.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "21"
-            endingLineNumber = "21"
-            landmarkName = "viewDidLoad()"
+            startingLineNumber = "53"
+            endingLineNumber = "53"
+            landmarkName = "openWriterIfNeeded()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

@@ -8,6 +8,8 @@
 import Foundation
 
 public enum PlistError {
+    case notPrepared
+    
     case write(Error)
     case read(Error)
     
@@ -15,13 +17,31 @@ public enum PlistError {
     case decode(Error)
     
     case decodeTypeError
+    case encodeTypeError
 }
 
 extension PlistError: Error {
     public var errorDescription: String {
         switch self {
         case let .write(error), let .read(error), let .encode(error), let .decode(error): return error.localizedDescription
-        case .decodeTypeError: return "type not conform decodable while decoding"
+        case .decodeTypeError: return "type not conform codable support while decoding"
+        case .encodeTypeError: return "type not conform codable support while encoding"
+        case .notPrepared: return "plist data not read complete"
         }
+    }
+    
+    public func fatalError(condition: @autoclosure () -> Bool, file: StaticString = #file, line: UInt = #line) {
+        guard !condition() else { return }
+        #if DEBUG
+        Swift.fatalError(errorDescription, file: file, line: line)
+        #else
+        print(error)
+        #endif
+    }
+    
+    public func logInDebug() {
+        #if DEBUG
+        print(errorDescription)
+        #endif
     }
 }

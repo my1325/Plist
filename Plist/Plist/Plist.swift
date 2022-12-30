@@ -7,12 +7,20 @@
 
 import Foundation
 
+public protocol PlistIsBasicCodableType {}
+extension Int: PlistIsBasicCodableType {}
+extension Double: PlistIsBasicCodableType {}
+extension Bool: PlistIsBasicCodableType {}
+extension String: PlistIsBasicCodableType {}
+extension Data: PlistIsBasicCodableType {}
+extension Date: PlistIsBasicCodableType {}
+
 public protocol PlistContainerEncoder {
-    func encode<Value>(_ value: Value) throws -> Data where Value : Encodable
+    func encodeContainer<T>(_ value: T) throws -> Data
 }
 
 public protocol PlistContainerDecoder {
-    func decode<T>(_ type: T.Type, from data: Data) throws -> T where T: Decodable
+    func decodeContainer<T>(_ type: T.Type, from data: Data) throws -> T
 }
 
 public protocol PlistContainerDelegate: AnyObject {
@@ -20,60 +28,88 @@ public protocol PlistContainerDelegate: AnyObject {
 }
 
 public struct PlistContainerConfiguration {
-    public let path: String
+    public let path: FilePath
     public let decoder: PlistContainerDecoder
     public let encoder: PlistContainerEncoder
     public let queue: DispatchQueue
+    public let shouldCacheOriginData: Bool
 }
 
-open class PlistContainer<T> {
-     
+open class PlistContainer<T>: PlistContainerDelegate {
     @Atomic
-    private(set) var container: T
+    private var _container: T
+    public var container: T {
+        PlistError.notPrepared.fatalError(condition: true)
+        return _container
+    }
+
     public let reader: DataReader
     public let writer: DataWriter
     public let configuration: PlistContainerConfiguration
     public init(container: T, configuration: PlistContainerConfiguration) {
-        self.container = container
+        self._container = container
         self.reader = DataReader(path: configuration.path)
         self.writer = DataWriter(path: configuration.path)
         self.configuration = configuration
-        self.reader.readData()
+        self.delegate = self
+        self._container = readContainerSynchronize() ?? container
     }
-    
+
     public weak var delegate: PlistContainerDelegate?
-    
-    open func setContainer(_ container: T) where T: Encodable {
-        self.container = container
-        self.writeToFile()
+
+    open func setContainer(_ container: T) {
+        _container = container
+        writeToFile()
     }
-   
-    private func writeToFile() where T: Encodable {
+
+    open func readContainerSynchronize() -> T? {
+        do {
+            if let data = reader.readDataSynchronize() {
+                let value = try configuration.decoder.decodeContainer(T.self, from: data)
+                if configuration.shouldCacheOriginData {
+                    _container = value
+                }
+                didReadData(value)
+                return value
+            }
+            return nil
+        } catch {
+            delegate?.plist(errorOccurred: .decode(error))
+            return nil
+        }
+    }
+
+    private func writeToFile() {
         configuration.queue.async { [weak self] in
             guard let _self = self else { return }
             do {
-                let data = try _self.configuration.encoder.encode(_self.container)
+                let data = try _self.configuration.encoder.encodeContainer(_self.container)
                 _self.writer.writeData(data)
             } catch {
                 _self.delegate?.plist(errorOccurred: .encode(error))
             }
         }
     }
-    
+
     private func readData(_ data: Data) {
         configuration.queue.async { [weak self] in
             guard let _self = self else { return }
             do {
-                if let DecodeT = T.self as? Decodable.Type {
-                    let value = try _self.configuration.decoder.decode(DecodeT, from: data)
-                    _self.container = value as! T
-                } else {
-                    _self.delegate?.plist(errorOccurred: .decodeTypeError)
+                let value = try _self.configuration.decoder.decodeContainer(T.self, from: data)
+                if _self.configuration.shouldCacheOriginData {
+                    _self._container = value
                 }
+                _self.didReadData(value)
             } catch {
                 _self.delegate?.plist(errorOccurred: .decode(error))
             }
         }
+    }
+
+    open func didReadData(_ data: T) {}
+    
+    public func plist(errorOccurred error: PlistError) {
+        error.logInDebug()
     }
 }
 
@@ -81,11 +117,11 @@ extension PlistContainer: DataReaderDelegate, DataWriterDelegate {
     public func reader(_ reader: DataReader, readData data: Data) {
         readData(data)
     }
-    
+
     public func reader(_ reader: DataReader, errorOccurredWhenRead error: PlistError) {
         delegate?.plist(errorOccurred: error)
     }
-    
+
     public func writer(_ writer: DataWriter, errorOccurredWhenWrite error: PlistError) {
         delegate?.plist(errorOccurred: error)
     }

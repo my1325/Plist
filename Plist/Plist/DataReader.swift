@@ -14,17 +14,25 @@ public protocol DataReaderDelegate: AnyObject {
 
 public let plist_reader_queue = "com.ge.plist.read.queue"
 public final class DataReader {
-    
     public let path: FilePath
     public let queue: DispatchQueue
-    public init(path: String, queue: DispatchQueue = DispatchQueue(label: plist_reader_queue, qos: .background)) {
-        self.path = FilePath(path: path)
+    public init(path: FilePath, queue: DispatchQueue = DispatchQueue(label: plist_reader_queue, qos: .background)) {
+        self.path = path
         self.queue = queue
     }
-    
+
     public weak var delegate: DataReaderDelegate?
+    public func readDataSynchronize() -> Data? {
+        do {
+            return try self.path.readData()
+        } catch {
+            self.delegate?.reader(self, errorOccurredWhenRead: .read(error))
+            return nil
+        }
+    }
+
     public func readData() {
-        queue.async { [weak self] in
+        self.queue.async { [weak self] in
             guard let _self = self else { return }
             do {
                 let data = try _self.path.readData()

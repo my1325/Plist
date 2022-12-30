@@ -7,26 +7,26 @@
 
 import UIKit
 
-struct Test: Codable {
-    let id: Int
-    let name: String
-}
-
 class ViewController: UIViewController {
 
-    let writer = DataWriter(path: String(format: "%@/default.plist", NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first!))
+    let infoPlist = PlistDictionary(configuration: .init(path: .infoPlist, decoder: PlistDictionaryCoder(), encoder: PlistDictionaryCoder(), queue: DispatchQueue.main, shouldCacheOriginData: true))
+    let testPlist = PlistDictionary(configuration: .init(path: .document.toFile("default.plist"), decoder: PlistDictionaryCoder(), encoder: PlistDictionaryCoder(), queue: .main, shouldCacheOriginData: true))
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
-        for i in 0 ..< 300 {
-            DispatchQueue.global(qos: .background).async {
-                let test = Test(id: i, name: "adfsd")
-                let plistEncoder = PropertyListEncoder()
-                let data = try! plistEncoder.encode(test)
-                Thread.sleep(forTimeInterval: 1)
-                self.writer.writeData(data)
-            }
-        }
+      
+        let version = infoPlist.value(for: "a", with: String.self)
+        print(version)
+        let test = infoPlist.value(for: "test.1.2", with: String.self)
+        print(test)
+        
+        let testa = testPlist.value(for: "asdf", with: String.self)
+        print(testa)
+        
+//        testPlist.setValue([1, 2, 3], for: "a.b")
+//        testPlist.setValue([1, 2, 3], for: "a.b.c")
+//        testPlist.setValue(1, for: "a.c.c")
+        print(testPlist.value(for: "a.c.c", with: Int.self))
     }
 }
 

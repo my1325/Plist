@@ -18,6 +18,9 @@ public enum PlistError {
     
     case decodeTypeError
     case encodeTypeError
+    
+    case canNotRemoveHeadNode
+    case canNotAddPreNodeToHeadNode
 }
 
 extension PlistError: Error {
@@ -27,6 +30,8 @@ extension PlistError: Error {
         case .decodeTypeError: return "type not conform codable support while decoding"
         case .encodeTypeError: return "type not conform codable support while encoding"
         case .notPrepared: return "plist data not read complete"
+        case .canNotRemoveHeadNode: return "can not remove head in linkedlist"
+        case .canNotAddPreNodeToHeadNode: return "can not add pre node to head node"
         }
     }
     

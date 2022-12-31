@@ -17,6 +17,7 @@
 		0F4A81BA294462AF004EEED1 /* Atomic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4A81B9294462AF004EEED1 /* Atomic.swift */; };
 		0F4A81BC2944A858004EEED1 /* Test.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0F4A81BB2944A858004EEED1 /* Test.plist */; };
 		0F4A81C22944C5F2004EEED1 /* PlistError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4A81C12944C5F2004EEED1 /* PlistError.swift */; };
+		0F4DA3BF296022DD004FA154 /* PlistCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4DA3BE296022DD004FA154 /* PlistCache.swift */; };
 		0FDDA43D295330AB007F158A /* DataReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FDDA43C295330AB007F158A /* DataReader.swift */; };
 		0FDDA43F295330FD007F158A /* FilePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FDDA43E295330FD007F158A /* FilePath.swift */; };
 		0FDDA44129533558007F158A /* Plist.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FDDA44029533558007F158A /* Plist.swift */; };
@@ -36,6 +37,7 @@
 		0F4A81B9294462AF004EEED1 /* Atomic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Atomic.swift; sourceTree = "<group>"; };
 		0F4A81BB2944A858004EEED1 /* Test.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Test.plist; sourceTree = "<group>"; };
 		0F4A81C12944C5F2004EEED1 /* PlistError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlistError.swift; sourceTree = "<group>"; };
+		0F4DA3BE296022DD004FA154 /* PlistCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlistCache.swift; sourceTree = "<group>"; };
 		0FDDA43C295330AB007F158A /* DataReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataReader.swift; sourceTree = "<group>"; };
 		0FDDA43E295330FD007F158A /* FilePath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilePath.swift; sourceTree = "<group>"; };
 		0FDDA44029533558007F158A /* Plist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Plist.swift; sourceTree = "<group>"; };
@@ -95,6 +97,7 @@
 				0FDDA43E295330FD007F158A /* FilePath.swift */,
 				0FDDA44029533558007F158A /* Plist.swift */,
 				0FDDA44229533ED2007F158A /* PlistDictionary.swift */,
+				0F4DA3BE296022DD004FA154 /* PlistCache.swift */,
 			);
 			path = Plist;
 			sourceTree = "<group>";
@@ -176,6 +179,7 @@
 				0F4A81A129444CD1004EEED1 /* AppDelegate.swift in Sources */,
 				0FDDA44129533558007F158A /* Plist.swift in Sources */,
 				0F4A81C22944C5F2004EEED1 /* PlistError.swift in Sources */,
+				0F4DA3BF296022DD004FA154 /* PlistCache.swift in Sources */,
 				0F4A81B629444CED004EEED1 /* DataWriter.swift in Sources */,
 				0FDDA44329533ED2007F158A /* PlistDictionary.swift in Sources */,
 				0F4A81BA294462AF004EEED1 /* Atomic.swift in Sources */,

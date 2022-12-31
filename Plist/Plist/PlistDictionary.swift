@@ -21,38 +21,6 @@ open class PlistDictionaryCoder: PlistContainerEncoder, PlistContainerDecoder {
     }
 }
 
-public protocol PlistDictionaryCacheCompatible {
-    func isValueExistsForKey(_ key: String) -> Bool
-    
-    func setValue(_ value: Any?, for key: String)
-    
-    func value(for key: String) -> Any?
-}
-
-public struct PlistDictionaryCacheEmpty: PlistDictionaryCacheCompatible {
-    public func isValueExistsForKey(_ key: String) -> Bool {
-        false
-    }
-    
-    public func setValue(_ value: Any?, for key: String) {}
-    
-    public func value(for key: String) -> Any? {
-        nil
-    }
-}
-
-public enum PlistDictionaryStrategy {
-    case none
-    case custom(PlistDictionaryCacheCompatible)
-    
-    var cache: PlistDictionaryCacheCompatible {
-        switch self {
-        case .none: return PlistDictionaryCacheEmpty()
-        case let .custom(cache): return cache
-        }
-    }
-}
-
 public extension PlistContainerConfiguration {
     static func plistWithPath(_ path: String, queue: DispatchQueue) -> PlistContainerConfiguration {
         let decoder = PlistDictionaryCoder()
@@ -64,7 +32,7 @@ public extension PlistContainerConfiguration {
 public let plist_run_queue = "com.ge.plist.run.queue"
 public final class PlistDictionary: PlistContainer<[String: Any]> {
     let cache: PlistDictionaryCacheCompatible
-    init(cacheStrategy: PlistDictionaryStrategy = .none, configuration: PlistContainerConfiguration) {
+    init(cacheStrategy: PlistDictionaryStrategy = .default, configuration: PlistContainerConfiguration) {
         self.cache = cacheStrategy.cache
         super.init(container: [:], configuration: configuration)
     }
@@ -74,7 +42,7 @@ public final class PlistDictionary: PlistContainer<[String: Any]> {
         set { setValue(newValue, for: keyPath) }
     }
     
-    public func value<T: Codable>(for keyPath: String, with type: T.Type, defaultValue: T? = nil) -> T? {
+    public func value<T>(for keyPath: String, with type: T.Type, defaultValue: T? = nil) -> T? {
         if cache.isValueExistsForKey(keyPath), let retValue = cache.value(for: keyPath) as? T {
             return retValue
         }
@@ -89,13 +57,17 @@ public final class PlistDictionary: PlistContainer<[String: Any]> {
         
         return defaultValue
     }
-    
-    public func setValue<T: Codable>(_ value: T?, for keyPath: String) {
-        cache.setValue(value, for: keyPath)
+        
+    public func setValue<T>(_ value: T?, for keyPath: String) {
         var _container = container
         let keyQueue = keyPath.split(separator: ".").filter { !$0.isEmpty }.map { String($0) }
-        setValue(value, for: keyQueue, with: &_container)
-        setContainer(_container)
+        do {
+            try setValue(value, for: keyQueue, with: &_container)
+            setContainer(_container)
+            cache.setValue(value, for: keyPath)
+        } catch {
+            delegate?.plist(errorOccurred: .encodeTypeError)
+        }
     }
 }
 
@@ -114,7 +86,7 @@ extension PlistDictionary {
         return (root, keyQueue.removeFirst())
     }
     
-    private func readValue<T: Codable>(for keyPath: String, with type: T.Type, from container: [String: Any]) -> T? {
+    private func readValue<T>(for keyPath: String, with type: T.Type, from container: [String: Any]) -> T? {
         let rootWithKey = rootForKeyPath(keyPath, with: container)
         guard let root = rootWithKey.root, let retValue = root[rootWithKey.key] else { return nil }
         
@@ -123,9 +95,9 @@ extension PlistDictionary {
             return _value
         }
             
-        if let _value = readCodableValue(with: retValue, type: type) {
+        if let codableType = type as? Codable.Type, let _value = readCodableValue(with: retValue, type: codableType) {
             cache.setValue(_value, for: keyPath)
-            return _value
+            return _value as? T
         }
         return nil
     }
@@ -142,26 +114,31 @@ extension PlistDictionary {
         }
     }
     
-    private func setValue<T: Codable>(_ value: T?, for keys: [String], with container: inout [String: Any]) {
+    private func setValue<T>(_ value: T?, for keys: [String], with container: inout [String: Any]) throws {
         var _keys = keys
         if keys.count > 1 {
             let key = _keys.removeFirst()
             if var _container = container[key] as? [String: Any] {
-                setValue(value, for: _keys, with: &_container)
+                try setValue(value, for: _keys, with: &_container)
                 container[key] = _container
             } else if container[key] == nil {
                 var _container: [String: Any] = [:]
-                setValue(value, for: _keys, with: &_container)
+                try setValue(value, for: _keys, with: &_container)
                 container[key] = _container
             } else {
-                delegate?.plist(errorOccurred: .encodeTypeError)
-                return
+                throw PlistError.encodeTypeError
             }
         } else if let valueToSetted = value {
             if valueToSetted is PlistIsBasicCodableType {
                 container[_keys.removeFirst()] = valueToSetted
+            } else if let array = valueToSetted as? [Any], array.isPlistData {
+                container[_keys.removeFirst()] = array
+            } else if let dictionary = valueToSetted as? [String: Any], dictionary.isPlistData {
+                container[_keys.removeFirst()] = dictionary
+            } else if let codableValue = valueToSetted as? Codable {
+                setCodableValue(codableValue, for: _keys.removeFirst(), with: &container)
             } else {
-                setCodableValue(valueToSetted, for: _keys.removeFirst(), with: &container)
+                throw PlistError.encodeTypeError
             }
         } else {
             container.removeValue(forKey: _keys.removeFirst())

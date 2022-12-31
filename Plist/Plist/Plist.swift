@@ -14,6 +14,20 @@ extension Bool: PlistIsBasicCodableType {}
 extension String: PlistIsBasicCodableType {}
 extension Data: PlistIsBasicCodableType {}
 extension Date: PlistIsBasicCodableType {}
+extension Array: PlistIsBasicCodableType where Element: PlistIsBasicCodableType {}
+extension Dictionary: PlistIsBasicCodableType where Key == String, Value: PlistIsBasicCodableType {}
+
+extension Array where Element == Any {
+    public var isPlistData: Bool {
+        reduce(true, { $0 && ($1 is PlistIsBasicCodableType) })
+    }
+}
+
+extension Dictionary where Key == String, Value == Any {
+    public var isPlistData: Bool {
+        reduce(true, { $0 && ($1.value is PlistIsBasicCodableType) })
+    }
+}
 
 public protocol PlistContainerEncoder {
     func encodeContainer<T>(_ value: T) throws -> Data

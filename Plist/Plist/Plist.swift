@@ -19,13 +19,41 @@ extension Dictionary: PlistIsBasicCodableType where Key == String, Value: PlistI
 
 extension Array where Element == Any {
     public var isPlistData: Bool {
-        reduce(true, { $0 && ($1 is PlistIsBasicCodableType) })
+        reduce(true, {
+            if $1 is PlistIsBasicCodableType {
+                return $0
+            }
+            
+            if let array = $1 as? [Any] {
+                return $0 && array.isPlistData
+            }
+            
+            if let dictionary = $1 as? [String: Any] {
+                return $0 && dictionary.isPlistData
+            }
+            
+            return false
+        })
     }
 }
 
 extension Dictionary where Key == String, Value == Any {
     public var isPlistData: Bool {
-        reduce(true, { $0 && ($1.value is PlistIsBasicCodableType) })
+        reduce(true, {
+            if $1.value is PlistIsBasicCodableType {
+                return $0
+            }
+            
+            if let array = $1.value as? [Any] {
+                return $0 && array.isPlistData
+            }
+            
+            if let dictionary = $1.value as? [String: Any] {
+                return $0 && dictionary.isPlistData
+            }
+            
+            return false
+        })
     }
 }
 

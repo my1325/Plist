@@ -21,18 +21,51 @@ open class PlistDictionaryCoder: PlistContainerEncoder, PlistContainerDecoder {
     }
 }
 
+public let plist_run_queue = "com.ge.plist.run.queue"
 public extension PlistContainerConfiguration {
-    static func plistWithPath(_ path: String, queue: DispatchQueue) -> PlistContainerConfiguration {
+    static func plistWithPath(_ path: FilePath, queue: DispatchQueue = DispatchQueue(label: plist_run_queue)) -> PlistContainerConfiguration {
         let decoder = PlistDictionaryCoder()
         let encoder = PlistDictionaryCoder()
-        return PlistContainerConfiguration(path: .file(file: path), decoder: decoder, encoder: encoder, queue: queue, shouldCacheOriginData: true)
+        return PlistContainerConfiguration(path: path, decoder: decoder, encoder: encoder, queue: queue, shouldCacheOriginData: true)
     }
 }
 
-public let plist_run_queue = "com.ge.plist.run.queue"
+public protocol PlistDictionaryCacheCompatible {
+    func isValueExistsForKey(_ key: String) -> Bool
+    
+    func setValue(_ value: Any?, for key: String)
+    
+    func value(for key: String) -> Any?
+}
+
+public struct PlistDictionaryNoneCache: PlistDictionaryCacheCompatible {
+    public func isValueExistsForKey(_ key: String) -> Bool { false }
+    
+    public func setValue(_ value: Any?, for key: String) {}
+    
+    public func value(for key: String) -> Any? { nil }
+}
+
+extension PlistCache: PlistDictionaryCacheCompatible where Key == String {}
+
+public enum PlistDictionaryStrategy {
+    case none
+    case `default`
+    case custom(PlistDictionaryCacheCompatible)
+    
+    var cache: PlistDictionaryCacheCompatible {
+        switch self {
+        case .none: return PlistDictionaryNoneCache()
+        case .default: return PlistCache<String>(capacity: 20, queue: DispatchQueue(label: "com.ge.plist.cache.queue"))
+        case let .custom(cache): return cache
+        }
+    }
+}
+
 public final class PlistDictionary: PlistContainer<[String: Any]> {
-    let cache: PlistDictionaryCacheCompatible
-    init(cacheStrategy: PlistDictionaryStrategy = .default, configuration: PlistContainerConfiguration) {
+    let lock = DispatchSemaphore(value: 1)
+    public let cache: PlistDictionaryCacheCompatible
+    public init(cacheStrategy: PlistDictionaryStrategy = .default, configuration: PlistContainerConfiguration) {
         self.cache = cacheStrategy.cache
         super.init(container: [:], configuration: configuration)
     }
@@ -59,6 +92,7 @@ public final class PlistDictionary: PlistContainer<[String: Any]> {
     }
         
     public func setValue<T>(_ value: T?, for keyPath: String) {
+        lock.lock(); defer { lock.unlock() }
         var _container = container
         let keyQueue = keyPath.split(separator: ".").filter { !$0.isEmpty }.map { String($0) }
         do {

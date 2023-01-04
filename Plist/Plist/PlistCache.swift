@@ -7,46 +7,12 @@
 
 import Foundation
 
-public protocol PlistDictionaryCacheCompatible {
-    func isValueExistsForKey(_ key: String) -> Bool
-    
-    func setValue(_ value: Any?, for key: String)
-    
-    func value(for key: String) -> Any?
-}
-
-public struct PlistDictionaryCacheEmpty: PlistDictionaryCacheCompatible {
-    public func isValueExistsForKey(_ key: String) -> Bool {
-        false
-    }
-    
-    public func setValue(_ value: Any?, for key: String) {}
-    
-    public func value(for key: String) -> Any? {
-        nil
-    }
-}
-
-public enum PlistDictionaryStrategy {
-    case none
-    case `default`
-    case custom(PlistDictionaryCacheCompatible)
-    
-    var cache: PlistDictionaryCacheCompatible {
-        switch self {
-        case .none: return PlistDictionaryCacheEmpty()
-        case .default: return PlistCache(capacity: 20, queue: DispatchQueue(label: "com.ge.plist.cache.queue"))
-        case let .custom(cache): return cache
-        }
-    }
-}
-
-public final class PlistLinkedListNode {
-    public let key: String
+public final class PlistLinkedListNode<Key: Equatable> {
+    public let key: Key
     public var value: Any
     public fileprivate(set) var pre: PlistLinkedListNode?
     public fileprivate(set) var next: PlistLinkedListNode?
-    init(key: String, value: Any, pre: PlistLinkedListNode? = nil, next: PlistLinkedListNode? = nil) {
+    init(key: Key, value: Any, pre: PlistLinkedListNode? = nil, next: PlistLinkedListNode? = nil) {
         self.key = key
         self.value = value
         self.pre = pre
@@ -56,20 +22,22 @@ public final class PlistLinkedListNode {
     fileprivate func removeFromList() {
         pre?.next = next
         next?.pre = pre
+        pre = nil
+        next = nil
     }
 }
 
-public final class PlistLinkedList {
+public final class PlistLinkedList<Key: Equatable> {
     
     public private(set) var count: Int = 0
     
-    public private(set) var head: PlistLinkedListNode?
+    public private(set) var head: PlistLinkedListNode<Key>?
     
-    public private(set) var tail: PlistLinkedListNode?
+    public private(set) var tail: PlistLinkedListNode<Key>?
     
     public var isEmpty: Bool { count == 0 }
     
-    public func add(_ value: Any, for key: String) -> PlistLinkedListNode {
+    public func add(_ value: Any, for key: Key) -> PlistLinkedListNode<Key> {
         let newNode = PlistLinkedListNode(key: key, value: value)
         if head == nil {
             head = newNode
@@ -84,7 +52,7 @@ public final class PlistLinkedList {
     }
     
     /// PlistLinkedListNode is not conform Equatable, so this method will not ensure the node is in list, it is not safe
-    public func removeNode(_ node: PlistLinkedListNode) {
+    public func removeNode(_ node: PlistLinkedListNode<Key>) {
         guard isKeyInList(node.key) else { return }
         if node.pre == nil {
             head = node.next
@@ -112,9 +80,9 @@ public final class PlistLinkedList {
         return false
     }
     
-    public func removeLastNode(_ k: Int = 1) -> [PlistLinkedListNode] {
+    public func removeLastNode(_ k: Int = 1) -> [PlistLinkedListNode<Key>] {
         guard count > k, k > 0 else { return [] }
-        var retValue: [PlistLinkedListNode] = []
+        var retValue: [PlistLinkedListNode<Key>] = []
         var _count = k
         while _count > 0, let node = tail {
             removeNode(node)
@@ -125,7 +93,7 @@ public final class PlistLinkedList {
     }
     
     /// PlistLinkedListNode is not conform Equatable, so this method will not ensure the node is in list, it is not safe
-    public func insertToHead(_ node: PlistLinkedListNode) {
+    public func insertToHead(_ node: PlistLinkedListNode<Key>) {
         if let key = head?.key, key == node.key { return }
         removeNode(node)
         node.next = head
@@ -137,7 +105,7 @@ public final class PlistLinkedList {
         count += 1
     }
     
-    public func isKeyInList(_ key: String) -> Bool {
+    public func isKeyInList(_ key: Key) -> Bool {
         var _head = head
         while _head != nil {
             if _head!.key == key {
@@ -150,9 +118,9 @@ public final class PlistLinkedList {
     }
 }
 
-public final class PlistCache: PlistDictionaryCacheCompatible {
-    private let list: PlistLinkedList = PlistLinkedList()
-    private var map: [String: PlistLinkedListNode] = [:]
+public final class PlistCache<Key: Hashable & Equatable> {
+    private let list: PlistLinkedList = PlistLinkedList<Key>()
+    private var map: [Key: PlistLinkedListNode<Key>] = [:]
     public let capacity: Int
     private let queue: DispatchQueue
     public init(capacity: Int, queue: DispatchQueue) {
@@ -164,12 +132,12 @@ public final class PlistCache: PlistDictionaryCacheCompatible {
     
     public var count: Int { list.count }
     
-    public func isValueExistsForKey(_ key: String) -> Bool {
+    public func isValueExistsForKey(_ key: Key) -> Bool {
         list.isKeyInList(key) && map.keys.contains(key)
     }
     
     /// this method will execute in the given queue
-    public func setValue(_ value: Any?, for key: String) {
+    public func setValue(_ value: Any?, for key: Key) {
         if let _value = value {
             _addValue(_value, for: key)
         } else {
@@ -177,11 +145,11 @@ public final class PlistCache: PlistDictionaryCacheCompatible {
         }
     }
     
-    public func removeValue(for key: String) {
+    public func removeValue(for key: Key) {
         _removeValue(for: key)
     }
     
-    public func value(for key: String) -> Any? {
+    public func value(for key: Key) -> Any? {
         if let node = map[key] {
             list.insertToHead(node)
             return node.value
@@ -189,7 +157,7 @@ public final class PlistCache: PlistDictionaryCacheCompatible {
         return nil
     }
     
-    private func _addValue(_ value: Any, for key: String) {
+    private func _addValue(_ value: Any, for key: Key) {
         queue.async { [weak self] in
             if self?.isValueExistsForKey(key) == true, let node = self?.map[key] {
                 node.value = value
@@ -202,7 +170,7 @@ public final class PlistCache: PlistDictionaryCacheCompatible {
         }
     }
     
-    private func _removeValue(for key: String) {
+    private func _removeValue(for key: Key) {
         queue.async { [weak self] in
             if let node = self?.map[key] {
                 self?.list.removeNode(node)
@@ -212,6 +180,7 @@ public final class PlistCache: PlistDictionaryCacheCompatible {
     }
     
     private func ensureCapacity() {
+        guard count > capacity else { return }
         let sub = count - capacity
         for node in list.removeLastNode(sub) {
             map.removeValue(forKey: node.key)

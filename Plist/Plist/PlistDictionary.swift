@@ -8,29 +8,6 @@
 import Foundation
 import FilePath
 
-open class PlistDictionaryCoder: PlistContainerEncoder, PlistContainerDecoder {
-    public func encodeContainer<T>(_ value: T) throws -> Data {
-        try PropertyListSerialization.data(fromPropertyList: value, format: .binary, options: .bitWidth)
-    }
-    
-    public func decodeContainer<T>(_ type: T.Type, from data: Data) throws -> T {
-        if let value = try PropertyListSerialization.propertyList(from: data, format: nil) as? T {
-            return value
-        } else {
-            throw PlistError.decodeTypeError
-        }
-    }
-}
-
-public let plist_run_queue = "com.ge.plist.run.queue"
-public extension PlistContainerConfiguration {
-    static func plistWithPath(_ path: FilePath, queue: DispatchQueue = DispatchQueue(label: plist_run_queue)) -> PlistContainerConfiguration {
-        let decoder = PlistDictionaryCoder()
-        let encoder = PlistDictionaryCoder()
-        return PlistContainerConfiguration(path: path, decoder: decoder, encoder: encoder, queue: queue, shouldCacheOriginData: true, readContainerSynchronize: true)
-    }
-}
-
 public protocol PlistDictionaryCacheCompatible {
     func isValueExistsForKey(_ key: String) -> Bool
     
@@ -71,7 +48,7 @@ public final class PlistDictionary: PlistContainer<[String: Any]> {
         super.init(container: [:], configuration: configuration)
     }
     
-    public subscript<T: Codable>(keyPath: String) -> T? {
+    public subscript<T>(keyPath: String) -> T? {
         get { value(for: keyPath, with: T.self) }
         set { setValue(newValue, for: keyPath) }
     }

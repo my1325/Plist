@@ -49,6 +49,11 @@ public final class PlistArray: PlistContainer<[Any]> {
     
     public var count: Int { container.count }
     
+    public subscript<T>(_ index: Int) -> T? {
+        get { value(at: index, with: T.self) }
+        set { setValue(newValue, at: index) }
+    }
+    
     public func value<T>(at index: Int, with type: T.Type, defaultValue: T? = nil) -> T? {
         if let value = cache.value(for: index) as? T {
             return value

@@ -23,6 +23,9 @@
 		0F33DD3B29696F3E00A8022C /* PlistArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FC33DCE2965A6C000F6BB63 /* PlistArray.swift */; };
 		0F33DD3C29696F3E00A8022C /* PlistCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4DA3BE296022DD004FA154 /* PlistCache.swift */; };
 		0F33DD3D2969710600A8022C /* PlistDictionary+HandyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F33DCF529695CCF00A8022C /* PlistDictionary+HandyJSON.swift */; };
+		0F33DD43296977D400A8022C /* PlistConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F33DD42296977D400A8022C /* PlistConfiguration.swift */; };
+		0F33DD4429697B1800A8022C /* FilePath.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F33DD0A29695FB500A8022C /* FilePath.framework */; };
+		0F33DD4529697B6800A8022C /* Plist.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F33DD2F29696F1E00A8022C /* Plist.framework */; };
 		0F4A81A129444CD1004EEED1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4A81A029444CD1004EEED1 /* AppDelegate.swift */; };
 		0F4A81A529444CD1004EEED1 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4A81A429444CD1004EEED1 /* ViewController.swift */; };
 		0F4A81A829444CD1004EEED1 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0F4A81A629444CD1004EEED1 /* Main.storyboard */; };
@@ -41,9 +44,9 @@
 		0F33DD182969600800A8022C /* Plist.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Plist.h; sourceTree = "<group>"; };
 		0F33DD2F29696F1E00A8022C /* Plist.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Plist.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0F33DD3129696F1F00A8022C /* Plist.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Plist.h; sourceTree = "<group>"; };
+		0F33DD42296977D400A8022C /* PlistConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlistConfiguration.swift; sourceTree = "<group>"; };
 		0F4A819D29444CD1004EEED1 /* Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0F4A81A029444CD1004EEED1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		0F4A81A229444CD1004EEED1 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		0F4A81A429444CD1004EEED1 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		0F4A81A729444CD1004EEED1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		0F4A81A929444CD3004EEED1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -93,6 +96,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0F33DD4529697B6800A8022C /* Plist.framework in Frameworks */,
+				0F33DD4429697B1800A8022C /* FilePath.framework in Frameworks */,
 				4001E046D53211B278F998BC /* Pods_Plist.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -191,7 +196,6 @@
 				0F4A81B429444CE2004EEED1 /* Plist */,
 				0F33DCF429695BD700A8022C /* Plist+HandyJSON */,
 				0F4A81A029444CD1004EEED1 /* AppDelegate.swift */,
-				0F4A81A229444CD1004EEED1 /* SceneDelegate.swift */,
 				0F4A81A429444CD1004EEED1 /* ViewController.swift */,
 				0F4A81A629444CD1004EEED1 /* Main.storyboard */,
 				0F4A81A929444CD3004EEED1 /* Assets.xcassets */,
@@ -206,6 +210,7 @@
 			isa = PBXGroup;
 			children = (
 				0F4A81C12944C5F2004EEED1 /* PlistError.swift */,
+				0F33DD42296977D400A8022C /* PlistConfiguration.swift */,
 				0FDDA44029533558007F158A /* Plist.swift */,
 				0FDDA44229533ED2007F158A /* PlistDictionary.swift */,
 				0FC33DCE2965A6C000F6BB63 /* PlistArray.swift */,
@@ -484,6 +489,7 @@
 				0F33DD3A29696F3E00A8022C /* PlistDictionary.swift in Sources */,
 				0F33DD3B29696F3E00A8022C /* PlistArray.swift in Sources */,
 				0F33DD3C29696F3E00A8022C /* PlistCache.swift in Sources */,
+				0F33DD43296977D400A8022C /* PlistConfiguration.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

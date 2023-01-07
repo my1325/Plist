@@ -31,6 +31,16 @@ extension Array: PlistHandyJSONType where Element: HandyJSON {
 
 extension PlistDictionary {
     
+    public subscript<T>(keyPath: String) -> T? where T: HandyJSON {
+        get { value(for: keyPath, with: T.self) }
+        set { setValue(newValue, for: keyPath) }
+    }
+    
+    public subscript<T>(keyPath: String) -> T? where T: PlistHandyJSONType {
+        get { value(for: keyPath, with: T.self) }
+        set { setValue(newValue, for: keyPath) }
+    }
+    
     public func value<H>(for keyPath: String, with type: H.Type, defaultValue: H? = nil) -> H? where H: HandyJSON {
         let _value = value(for: keyPath, with: [String: Any].self, defaultValue: defaultValue?.toJSON())
         return H.deserialize(from: _value) ?? defaultValue
@@ -56,6 +66,16 @@ extension PlistDictionary {
 }
 
 extension PlistArray {
+    
+    public subscript<T>(_ index: Int) -> T? where T: HandyJSON {
+        get { value(at: index, with: T.self) }
+        set { setValue(newValue, at: index) }
+    }
+    
+    public subscript<T>(_ index: Int) -> T? where T: PlistHandyJSONType {
+        get { value(at: index, with: T.self) }
+        set { setValue(newValue, at: index) }
+    }
     
     public func value<T>(at index: Int, with type: T.Type, defaultValue: T? = nil) -> T? where T: HandyJSON {
         let value = value(at: index, with: [String: Any].self, defaultValue: defaultValue?.toJSON())

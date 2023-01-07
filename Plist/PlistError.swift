@@ -40,7 +40,7 @@ extension PlistError: Error {
         #if DEBUG
         Swift.fatalError(errorDescription, file: file, line: line)
         #else
-        print(error)
+        print(self)
         #endif
     }
     

@@ -17,6 +17,7 @@ Pod::Spec.new do |s|
 
  s.subspec 'DataWriter' do |ss|
     ss.source_files = 'DataWriter/*.swift'
+    ss.dependency 'Plist/FilePath'
  end 
 
  s.subspec 'Plist' do |ss|

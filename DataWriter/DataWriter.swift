@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import FilePath
 public protocol DataWriterDelegate: AnyObject {
     func writer(_ writer: DataWriter, errorOccurredWhenWrite error: Error)
 }

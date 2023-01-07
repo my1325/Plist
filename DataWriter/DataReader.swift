@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import FilePath
 
 public protocol DataReaderDelegate: AnyObject {
     func reader(_ reader: DataReader, errorOccurredWhenRead error: Error)

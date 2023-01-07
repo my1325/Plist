@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import FilePath
 
 public protocol PlistDictionaryCacheCompatible {
     func isValueExistsForKey(_ key: String) -> Bool

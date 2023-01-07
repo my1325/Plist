@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import FilePath
 
 public protocol PlistIsBasicCodableType {}
 extension Int: PlistIsBasicCodableType {}

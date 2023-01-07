@@ -7,7 +7,6 @@
 
 import UIKit
 import Plist
-import FilePath
 import HandyJSON
 
 struct TestCodable: Codable {

@@ -42,11 +42,9 @@ public enum PlistArrayCacheStrategy {
 public final class PlistArray: PlistContainer<[Any]> {
     let lock = DispatchSemaphore(value: 1)
     public let cache: PlistArrayCacheCompatible
-    public let defaultValue: Any
-    public init(cacheStrategy: PlistArrayCacheStrategy = .default, initialCapacity: Int = 8, withDefaultValue defaultValue: Any = "", configuration: PlistContainerConfiguration) {
+    public init(cacheStrategy: PlistArrayCacheStrategy = .default, configuration: PlistContainerConfiguration) {
         self.cache = cacheStrategy.cache
-        self.defaultValue = defaultValue
-        super.init(container: Array(repeating: defaultValue, count: initialCapacity), configuration: configuration)
+        super.init(container: [], configuration: configuration)
     }
     
     public var count: Int { container.count }
@@ -69,57 +67,32 @@ public final class PlistArray: PlistContainer<[Any]> {
     
     public func appendValue<T>(_ value: T) {
         lock.lock(); defer { lock.unlock() }
-        var _container = container
-        if let _value = value as? PlistIsBasicCodableType {
-            _container.append(_value)
-            setContainer(_container)
+        do {
+            var _container = container
+            try setValue(value: value, at: count, with: &_container)
+            try setContainer(_container)
             cache.setValue(value, for: _container.count - 1)
-        } else if let array = value as? [Any], array.isPlistData {
-            _container.append(array)
-            setContainer(_container)
-            cache.setValue(value, for: _container.count - 1)
-        } else if let dictionary = value as? [String: Any], dictionary.isPlistData {
-            _container.append(dictionary)
-            setContainer(_container)
-            cache.setValue(value, for: _container.count - 1)
-        } else if let codableValue = value as? Codable {
-            appendCodableValue(codableValue, with: &_container)
-            setContainer(_container)
-            cache.setValue(value, for: _container.count - 1)
-        } else {
-            delegate?.plist(errorOccurred: .encodeTypeError)
+        } catch {
+            delegate?.plist(errorOccurred: PlistError.encodeTypeError)
         }
     }
         
     public func setValue<T>(_ value: T?, at index: Int) {
         lock.lock(); defer { lock.unlock() }
-        var _container = container
-        ensureIndexWithDefaultValue(index, using: &_container)
+        precondition(index < count)
         
-        if value == nil {
-            _container[index] = defaultValue
+        do {
+            var _container = container
+            if value == nil {
+                _container.remove(at: index)
+            } else {
+                try setValue(value: value!, at: index, with: &_container)
+            }
+            
+            try setContainer(_container)
             cache.setValue(value, for: index)
-            return
-        }
-        
-        if let _value = value as? PlistIsBasicCodableType {
-            _container[index] = _value
-            setContainer(_container)
-            cache.setValue(value, for: index)
-        } else if let array = value as? [Any], array.isPlistData {
-            _container[index] = array
-            setContainer(_container)
-            cache.setValue(value, for: index)
-        } else if let dictionary = value as? [String: Any], dictionary.isPlistData {
-            _container[index] = dictionary
-            setContainer(_container)
-            cache.setValue(value, for: index)
-        } else if let codableValue = value as? Codable {
-            setCodableValue(codableValue, at: index, with: &_container)
-            setContainer(_container)
-            cache.setValue(value, for: index)
-        } else {
-            delegate?.plist(errorOccurred: .encodeTypeError)
+        } catch {
+            delegate?.plist(errorOccurred: PlistError.encodeTypeError)
         }
     }
 }
@@ -155,30 +128,36 @@ extension PlistArray {
         }
     }
     
-    private func ensureIndexWithDefaultValue(_ index: Int, using container: inout [Any]) {
-        guard index >= container.count else { return }
-        container.append(contentsOf: Array(repeating: defaultValue, count: index - container.count + 1))
+    private func setValue<T>(value: T, at index: Int, with container: inout [Any]) throws {
+        if let _value = value as? PlistIsBasicCodableType {
+            safeInsertValue(_value, at: index, with: &container)
+        } else if let array = value as? [Any], array.isPlistData {
+            safeInsertValue(array, at: index, with: &container)
+        } else if let dictionary = value as? [String: Any], dictionary.isPlistData {
+            safeInsertValue(dictionary, at: index, with: &container)
+        } else if let codableValue = value as? Codable {
+            setCodableValue(codableValue, at: index, with: &container)
+        } else {
+            throw PlistError.encodeTypeError
+        }
     }
-    
+
     private func setCodableValue<T: Codable>(_ value: T, at index: Int, with container: inout [Any]) {
         do {
             let encoder = PropertyListEncoder()
             let data = try encoder.encode(value)
             let object = try PropertyListSerialization.propertyList(from: data, format: nil)
-            container[index] = object
+            safeInsertValue(object, at: index, with: &container)
         } catch {
             delegate?.plist(errorOccurred: .encode(error))
         }
     }
     
-    private func appendCodableValue<T: Codable>(_ value: T, with container: inout [Any]) {
-        do {
-            let encoder = PropertyListEncoder()
-            let data = try encoder.encode(value)
-            let object = try PropertyListSerialization.propertyList(from: data, format: nil)
-            container.append(object)
-        } catch {
-            delegate?.plist(errorOccurred: .encode(error))
+    private func safeInsertValue(_ value: Any, at index: Int, with container: inout [Any]) {
+        if index < container.count {
+            container[index] = value
+        } else {
+            container.append(value)
         }
     }
 }

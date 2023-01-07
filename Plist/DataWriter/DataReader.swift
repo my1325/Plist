@@ -6,9 +6,10 @@
 //
 
 import Foundation
+import FilePath
 
 public protocol DataReaderDelegate: AnyObject {
-    func reader(_ reader: DataReader, errorOccurredWhenRead error: PlistError)
+    func reader(_ reader: DataReader, errorOccurredWhenRead error: Error)
     func reader(_ reader: DataReader, readData data: Data)
 }
 
@@ -22,23 +23,18 @@ public final class DataReader {
     }
 
     public weak var delegate: DataReaderDelegate?
-    public func readDataSynchronize() -> Data? {
-        do {
-            return try self.path.readData()
-        } catch {
-            self.delegate?.reader(self, errorOccurredWhenRead: .read(error))
-            return nil
-        }
+    public func readDataSynchronize() throws -> Data {
+        try self.path.readData()
     }
 
     public func readData() {
         self.queue.async { [weak self] in
             guard let _self = self else { return }
             do {
-                let data = try _self.path.readData()
+                let data = try _self.readDataSynchronize()
                 _self.delegate?.reader(_self, readData: data)
             } catch {
-                _self.delegate?.reader(_self, errorOccurredWhenRead: .read(error))
+                _self.delegate?.reader(_self, errorOccurredWhenRead: error)
             }
         }
     }

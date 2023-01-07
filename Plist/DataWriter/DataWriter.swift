@@ -6,9 +6,9 @@
 //
 
 import Foundation
-
+import FilePath
 public protocol DataWriterDelegate: AnyObject {
-    func writer(_ writer: DataWriter, errorOccurredWhenWrite error: PlistError)
+    func writer(_ writer: DataWriter, errorOccurredWhenWrite error: Error)
 }
 
 public let plist_writer_queue = "com.ge.plist.write.queue"
@@ -50,7 +50,7 @@ public final class DataWriter {
                         try _self.path.writeData(_data)
                         _self.dataNeedToWrite = nil
                     } catch {
-                        self?.delegate?.writer(_self, errorOccurredWhenWrite: .write(error))
+                        self?.delegate?.writer(_self, errorOccurredWhenWrite: error)
                     }
                 }
             }

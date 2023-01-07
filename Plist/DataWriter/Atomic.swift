@@ -7,12 +7,12 @@
 
 import Foundation
 
-protocol Lock {
+public protocol Lock {
     func lock()
     func unlock()
 }
 
-extension Lock {
+public extension Lock {
     func onLock<T>(_ closure: @escaping () throws -> T) rethrows -> T {
         lock(); defer { unlock() }
         return try closure()
@@ -25,25 +25,25 @@ extension Lock {
 }
 
 extension DispatchSemaphore: Lock {
-    func lock() {
+    public func lock() {
          wait()
     }
     
-    func unlock() {
+    public func unlock() {
         signal()
     }
 }
 
 @propertyWrapper
-internal final class Atomic<T> {
+public final class Atomic<T> {
     let lock: Lock = DispatchSemaphore(value: 1)
     
     private var _value: T
-    init(wrappedValue value: T) {
+    public init(wrappedValue value: T) {
         self._value = value
     }
     
-    var wrappedValue: T {
+    public var wrappedValue: T {
         get {
             lock.onLock(owner: self, { $0._value })
         } set {

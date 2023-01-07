@@ -1,1 +1,8 @@
 DerivedData/
+*.xcworkspace
+Pods/
+*.lock
+Packages/
+Package.pins
+Package.resolved
+.build/

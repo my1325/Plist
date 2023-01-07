@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import FilePath
 
 open class PlistDictionaryCoder: PlistContainerEncoder, PlistContainerDecoder {
     public func encodeContainer<T>(_ value: T) throws -> Data {
@@ -26,7 +27,7 @@ public extension PlistContainerConfiguration {
     static func plistWithPath(_ path: FilePath, queue: DispatchQueue = DispatchQueue(label: plist_run_queue)) -> PlistContainerConfiguration {
         let decoder = PlistDictionaryCoder()
         let encoder = PlistDictionaryCoder()
-        return PlistContainerConfiguration(path: path, decoder: decoder, encoder: encoder, queue: queue, shouldCacheOriginData: true)
+        return PlistContainerConfiguration(path: path, decoder: decoder, encoder: encoder, queue: queue, shouldCacheOriginData: true, readContainerSynchronize: true)
     }
 }
 
@@ -97,7 +98,7 @@ public final class PlistDictionary: PlistContainer<[String: Any]> {
         let keyQueue = keyPath.split(separator: ".").filter { !$0.isEmpty }.map { String($0) }
         do {
             try setValue(value, for: keyQueue, with: &_container)
-            setContainer(_container)
+            try setContainer(_container)
             cache.setValue(value, for: keyPath)
         } catch {
             delegate?.plist(errorOccurred: .encodeTypeError)

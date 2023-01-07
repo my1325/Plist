@@ -7,6 +7,9 @@
 
 import Foundation
 import HandyJSON
+#if canImport(Plist)
+import Plist
+#endif
 
 public protocol PlistHandyJSONType {
     func toPlistData() -> Any

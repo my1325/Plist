@@ -1,0 +1,1 @@
+../../PlistHandyJSONSupport/PlistDictionary+HandyJSON.swift

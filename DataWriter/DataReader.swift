@@ -6,6 +6,9 @@
 //
 
 import Foundation
+#if canImport(FilePath)
+import FilePath
+#endif
 
 public protocol DataReaderDelegate: AnyObject {
     func reader(_ reader: DataReader, errorOccurredWhenRead error: Error)

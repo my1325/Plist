@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
 
- s.name             = "Plist"
+ s.name             = "GePlist"
  s.version           = "0.0.1"
  s.summary         = "provide tool to read or write property list file and json file"
  s.homepage        = "https://github.com/my1325/GeSwift.git"
@@ -17,18 +17,18 @@ Pod::Spec.new do |s|
 
  s.subspec 'DataWriter' do |ss|
     ss.source_files = 'DataWriter/*.swift'
-    ss.dependency 'Plist/FilePath'
+    ss.dependency 'GePlist/FilePath'
  end 
 
  s.subspec 'Plist' do |ss|
     ss.source_files = 'Plist/*.swift'
-    ss.dependency 'Plist/FilePath'
-    ss.dependency 'Plist/DataWriter'
+    ss.dependency 'GePlist/FilePath'
+    ss.dependency 'GePlist/DataWriter'
  end
 
  s.subspec 'HandyJSON' do |ss|
     ss.source_files = "PlistHandyJSONSupport/*.swift"
-    ss.dependency 'Plist/Plist'
+    ss.dependency 'GePlist/Plist'
     ss.dependency 'HandyJSON', '5.0.2'
  end
 end

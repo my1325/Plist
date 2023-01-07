@@ -6,6 +6,13 @@
 //
 
 import Foundation
+#if canImport(FilePath)
+import FilePath
+#endif
+
+#if canImport(DataWriter)
+import DataWriter
+#endif
 
 open class PlistContainer<T>: PlistContainerDelegate {
     @Atomic

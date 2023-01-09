@@ -6,6 +6,6 @@ target 'Example' do
   use_frameworks!
 
   # Pods for Plist
-  pod 'Plist', :path => '.'
-  pod 'Plist/HandyJSON', :path => '.'
+  pod 'GePlist', :path => '.'
+  pod 'GePlist/HandyJSON', :path => '.'
 end

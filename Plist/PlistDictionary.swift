@@ -7,6 +7,28 @@
 
 import Foundation
 
+private final class PlistDictionaryObserverWrapper: PlistDictionaryObserver {
+    private(set) weak var target: PlistDictionaryObserver?
+    init(target: PlistDictionaryObserver) {
+        self.target = target
+    }
+    
+    var isNil: Bool { target == nil }
+    
+    func plistDictionary(_ plistDictionary: PlistDictionary, valueChangedWith keyPath: String, with value: Any?) {
+        target?.plistDictionary(plistDictionary, valueChangedWith: keyPath, with: value)
+    }
+    
+    class func ==(lhs: PlistDictionaryObserverWrapper, rhs: PlistDictionaryObserver) -> Bool {
+        guard !lhs.isNil else { return false }
+        return lhs.target! === rhs
+    }
+}
+
+public protocol PlistDictionaryObserver: AnyObject {
+    func plistDictionary(_ plistDictionary: PlistDictionary, valueChangedWith keyPath: String, with value: Any?)
+}
+
 public protocol PlistDictionaryCacheCompatible {
     func isValueExistsForKey(_ key: String) -> Bool
     
@@ -40,11 +62,32 @@ public enum PlistDictionaryStrategy {
 }
 
 public final class PlistDictionary: PlistContainer<[String: Any]> {
+    fileprivate private(set) var observerList: [String: [PlistDictionaryObserverWrapper]] = [:]
     let lock = DispatchSemaphore(value: 1)
     public let cache: PlistDictionaryCacheCompatible
     public init(cacheStrategy: PlistDictionaryStrategy = .default, configuration: PlistContainerConfiguration) {
         self.cache = cacheStrategy.cache
         super.init(container: [:], configuration: configuration)
+    }
+    
+    public func addObserver(_ observer: PlistDictionaryObserver, for keyPath: String) {
+        lock.onLock {
+            self.clearNilObserver()
+            var _list = self.observerList[keyPath] ?? []
+            _list.append(PlistDictionaryObserverWrapper(target: observer))
+            self.observerList[keyPath] = _list
+        }
+    }
+    
+    public func removeObserver(_ observer: PlistDictionaryObserver, for keyPath: String) {
+        lock.onLock {
+            self.clearNilObserver()
+            var _list = self.observerList[keyPath] ?? []
+            if let index = _list.firstIndex(where: { $0 == observer }) {
+                _list.remove(at: index)
+            }
+            self.observerList[keyPath] = _list
+        }
     }
     
     public subscript<T>(keyPath: String) -> T? {
@@ -76,6 +119,7 @@ public final class PlistDictionary: PlistContainer<[String: Any]> {
             try setValue(value, for: keyQueue, with: &_container)
             try setContainer(_container)
             cache.setValue(value, for: keyPath)
+            invokeObserverWithValue(value, for: keyPath)
         } catch {
             delegate?.plist(errorOccurred: .encodeTypeError)
         }
@@ -83,6 +127,25 @@ public final class PlistDictionary: PlistContainer<[String: Any]> {
 }
 
 extension PlistDictionary {
+    private func invokeObserverWithValue(_ value: Any?, for keyPath: String) {
+        let _list = observerList[keyPath] ?? []
+        for o in _list {
+            guard !o.isNil else { continue }
+            o.plistDictionary(self, valueChangedWith: keyPath, with: value)
+        }
+    }
+    
+    private func clearNilObserver() {
+        for var (keyPath, list) in observerList {
+            for i in stride(from: list.count - 1, through: 0, by: -1) {
+                if list[i].isNil {
+                    list.remove(at: i)
+                }
+            }
+            observerList[keyPath] = list
+        }
+    }
+    
     private func rootForKeyPath(_ keyPath: String, with container: [String: Any]) -> (root: [String: Any]?, key: String) {
         var keyQueue = keyPath.split(separator: ".").filter { !$0.isEmpty }.map { String($0) }
         var root = container

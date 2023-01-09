@@ -43,14 +43,14 @@ extension PlistDictionary {
         set { setValue(newValue, for: keyPath) }
     }
     
-    public func value<H>(for keyPath: String, with type: H.Type, defaultValue: H? = nil) -> H? where H: HandyJSON {
+    public func value<T>(for keyPath: String, with type: T.Type, defaultValue: T? = nil) -> T? where T: HandyJSON {
         let _value = value(for: keyPath, with: [String: Any].self, defaultValue: defaultValue?.toJSON())
-        return H.deserialize(from: _value) ?? defaultValue
+        return T.deserialize(from: _value) ?? defaultValue
     }
     
-    public func value<H>(for keyPath: String, with type: H.Type, defaultValue: H? = nil) -> H? where H: PlistHandyJSONType {
+    public func value<T>(for keyPath: String, with type: T.Type, defaultValue: T? = nil) -> T? where T: PlistHandyJSONType {
         if let _value = value(for: keyPath, with: [[String: Any]].self, defaultValue: defaultValue?.toPlistData() as? [[String : Any]]) {
-            return H.fromPlistData(_value) ?? defaultValue
+            return T.fromPlistData(_value) ?? defaultValue
         } else {
             return defaultValue
         }

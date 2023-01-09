@@ -7,15 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0ACDF6321D3ADD10096F95E0 /* Pods_Example.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 449924B31FC0CF94E51FC705 /* Pods_Example.framework */; };
 		0F33DD50296989E400A8022C /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F33DD47296989E400A8022C /* ViewController.swift */; };
 		0F33DD51296989E400A8022C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0F33DD48296989E400A8022C /* Assets.xcassets */; };
 		0F33DD52296989E400A8022C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0F33DD49296989E400A8022C /* LaunchScreen.storyboard */; };
 		0F33DD53296989E400A8022C /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0F33DD4B296989E400A8022C /* Main.storyboard */; };
 		0F33DD54296989E400A8022C /* Test.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0F33DD4D296989E400A8022C /* Test.plist */; };
 		0F33DD55296989E400A8022C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F33DD4E296989E400A8022C /* AppDelegate.swift */; };
-		0F932F3B2969CFB80016AB90 /* Plist in Frameworks */ = {isa = PBXBuildFile; productRef = 0F932F3A2969CFB80016AB90 /* Plist */; };
-		0F932F3D2969CFBC0016AB90 /* PlistHandyJSONSupport in Frameworks */ = {isa = PBXBuildFile; productRef = 0F932F3C2969CFBC0016AB90 /* PlistHandyJSONSupport */; };
-		0F932F3F2969CFD90016AB90 /* FilePath in Frameworks */ = {isa = PBXBuildFile; productRef = 0F932F3E2969CFD90016AB90 /* FilePath */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +26,8 @@
 		0F33DD4F296989E400A8022C /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0F4A819D29444CD1004EEED1 /* Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		449924B31FC0CF94E51FC705 /* Pods_Example.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Example.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		68A8FE671369D0341E29BBA5 /* Pods-Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example.release.xcconfig"; path = "Target Support Files/Pods-Example/Pods-Example.release.xcconfig"; sourceTree = "<group>"; };
+		741A117AC55828EB117B1332 /* Pods-Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example.debug.xcconfig"; path = "Target Support Files/Pods-Example/Pods-Example.debug.xcconfig"; sourceTree = "<group>"; };
 		A2457CD6A006596905EC8D37 /* Pods_Plist_HandyJSON.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Plist_HandyJSON.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -36,9 +36,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0F932F3F2969CFD90016AB90 /* FilePath in Frameworks */,
-				0F932F3D2969CFBC0016AB90 /* PlistHandyJSONSupport in Frameworks */,
-				0F932F3B2969CFB80016AB90 /* Plist in Frameworks */,
+				0ACDF6321D3ADD10096F95E0 /* Pods_Example.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +63,7 @@
 				0F33DD46296989E400A8022C /* Example */,
 				0F4A819E29444CD1004EEED1 /* Products */,
 				142A89876576CAB790C79C8E /* Frameworks */,
+				F397966B4945D1E694AB39E3 /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
@@ -85,6 +84,15 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		F397966B4945D1E694AB39E3 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				741A117AC55828EB117B1332 /* Pods-Example.debug.xcconfig */,
+				68A8FE671369D0341E29BBA5 /* Pods-Example.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -92,9 +100,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 0F4A81B129444CD3004EEED1 /* Build configuration list for PBXNativeTarget "Example" */;
 			buildPhases = (
+				F504384FA3A8449D20D86704 /* [CP] Check Pods Manifest.lock */,
 				0F4A819929444CD1004EEED1 /* Sources */,
 				0F4A819A29444CD1004EEED1 /* Frameworks */,
 				0F4A819B29444CD1004EEED1 /* Resources */,
+				0E54CA271C89434DEFF04067 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -102,9 +112,6 @@
 			);
 			name = Example;
 			packageProductDependencies = (
-				0F932F3A2969CFB80016AB90 /* Plist */,
-				0F932F3C2969CFBC0016AB90 /* PlistHandyJSONSupport */,
-				0F932F3E2969CFD90016AB90 /* FilePath */,
 			);
 			productName = Plist;
 			productReference = 0F4A819D29444CD1004EEED1 /* Example.app */;
@@ -156,6 +163,48 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		0E54CA271C89434DEFF04067 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Example/Pods-Example-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Example/Pods-Example-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Example/Pods-Example-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		F504384FA3A8449D20D86704 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Example-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		0F4A819929444CD1004EEED1 /* Sources */ = {
@@ -305,6 +354,7 @@
 		};
 		0F4A81B229444CD3004EEED1 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 741A117AC55828EB117B1332 /* Pods-Example.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -323,6 +373,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.zzy.Plist;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -334,6 +385,7 @@
 		};
 		0F4A81B329444CD3004EEED1 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 68A8FE671369D0341E29BBA5 /* Pods-Example.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -352,6 +404,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.zzy.Plist;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -383,21 +436,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		0F932F3A2969CFB80016AB90 /* Plist */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = Plist;
-		};
-		0F932F3C2969CFBC0016AB90 /* PlistHandyJSONSupport */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = PlistHandyJSONSupport;
-		};
-		0F932F3E2969CFD90016AB90 /* FilePath */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = FilePath;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 0F4A819529444CD1004EEED1 /* Project object */;
 }

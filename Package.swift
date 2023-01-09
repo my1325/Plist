@@ -14,7 +14,7 @@ let package = Package(
         .library(name: "PlistHandyJSONSupport", targets: ["PlistHandyJSONSupport"])
     ],
     dependencies: [
-        .package(url: "https://github.com/alibaba/HandyJSON.git", from: "5.0.0")
+        .package(url: "https://github.com/alibaba/HandyJSON.git", from: "5.0.0"),
     ],
     targets: [
         .target(name: "FilePath", dependencies: []),

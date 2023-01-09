@@ -6,10 +6,14 @@
 //
 
 import UIKit
+#if canImport(Plist)
 import Plist
 import PlistHandyJSONSupport
-import HandyJSON
 import FilePath
+#elseif canImport(GePlist)
+import GePlist
+#endif
+import HandyJSON
 
 struct TestCodable: Codable {
     let id: Int
@@ -34,19 +38,23 @@ class ViewController: UIViewController {
         // Do any additional setup after loading the view.
         
 //        jsonPlist.setValue(["a": 1, "b": ["1": 2, "2": "2"], "c": [1, 2, "3"]], for: "test")
-        let data1 = jsonPlist.value(for: "test.c", with: [Any].self)
-        let data2 = jsonPlist.value(for: "test.a", with: Int.self)
-        let data3 = jsonPlist.value(for: "test.b", with: [String: Any].self)
-        print(data1)
-        print(data2)
-        print(data3)
-        
-        var testHandyJSON = TestHandyJSON()
-        testHandyJSON.id = 1
-        testHandyJSON.name = "abc"
-//        jsonPlist.setValue([testHandyJSON, testHandyJSON, testHandyJSON], for: "test.abc")
-        let data = jsonPlist.value(for: "test.abc", with: [TestHandyJSON].self)
-        print(data)
+        jsonPlist.addObserver(self, for: "test.abc")
+//        let data1 = jsonPlist.value(for: "test.c", with: [Any].self)
+//        let data2 = jsonPlist.value(for: "test.a", with: Int.self)
+//        let data3 = jsonPlist.value(for: "test.b", with: [String: Any].self)
+//        print(data1)
+//        print(data2)
+//        print(data3)
+//
+        DispatchQueue.global().async {
+            var testHandyJSON = TestHandyJSON()
+            testHandyJSON.id = 1
+            testHandyJSON.name = "abc"
+            self.jsonPlist.setValue([testHandyJSON, testHandyJSON, testHandyJSON], for: "test.abc")
+        }
+
+//        let data = jsonPlist.value(for: "test.abc", with: [TestHandyJSON].self)
+//        print(data)
 //        testPlist.setValue(["a": 1, "b": 2, "c": Date()], for: "a.c.a")
 //
 //        let dictionary = testPlist.value(for: "a.c.a", with: [String: Any].self)
@@ -72,6 +80,12 @@ class ViewController: UIViewController {
 //
 //        let value3 = testArray.value(at: 1, with: Int.self)
 //        print(value3)
+    }
+}
+
+extension ViewController: PlistDictionaryObserver {
+    func plistDictionary(_ plistDictionary: PlistDictionary, valueChangedWith keyPath: String, with value: Any?) {
+        print(value)
     }
 }
 

@@ -7,10 +7,9 @@ let package = Package(
     name: "Plist",
     platforms: [.iOS(.v11)],
     products: [
-        // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(name: "FilePath", targets: ["FilePath"]),
         .library(name: "DataWriter", targets: ["DataWriter"]),
-        .library(name: "Plist", targets: ["DataWriter"]),
+        .library(name: "Plist", targets: ["Plist"]),
         .library(name: "PlistHandyJSONSupport", targets: ["PlistHandyJSONSupport"])
     ],
     dependencies: [

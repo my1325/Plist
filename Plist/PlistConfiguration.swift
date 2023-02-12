@@ -12,9 +12,16 @@ import FilePath
 
 public protocol PlistIsBasicCodableType {}
 extension Int: PlistIsBasicCodableType {}
+extension Int64: PlistIsBasicCodableType {}
+extension Int32: PlistIsBasicCodableType {}
+extension UInt: PlistIsBasicCodableType {}
+extension UInt32: PlistIsBasicCodableType {}
+extension UInt64: PlistIsBasicCodableType {}
+extension NSNumber: PlistIsBasicCodableType {}
 extension Double: PlistIsBasicCodableType {}
 extension Bool: PlistIsBasicCodableType {}
 extension String: PlistIsBasicCodableType {}
+extension NSString: PlistIsBasicCodableType {}
 extension Data: PlistIsBasicCodableType {}
 extension Date: PlistIsBasicCodableType {}
 extension Array: PlistIsBasicCodableType where Element: PlistIsBasicCodableType {}

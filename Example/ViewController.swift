@@ -30,7 +30,7 @@ struct TestHandyJSON: HandyJSON {
 class ViewController: UIViewController {
 
 //    let infoPlist = PlistDictionary(configuration: .plistWithPath(.infoPlist))
-//    let testPlist = PlistDictionary(configuration: .plistWithPath(.document.toFile("default.plist")))
+    let testPlist = PlistDictionary(configuration: .defaultPlistConfiguration(with: .document.toFile("default.plist")))
 //    let testArray = PlistArray(configuration: .plistWithPath(.document.toFile("defaultArray.plist")))
     let jsonPlist = PlistDictionary(configuration: .JSONPlistConfiguration(with: .document.toFile("json_test.json")))
     override func viewDidLoad() {
@@ -46,12 +46,12 @@ class ViewController: UIViewController {
 //        print(data2)
 //        print(data3)
 //
-        DispatchQueue.global().async {
-            var testHandyJSON = TestHandyJSON()
-            testHandyJSON.id = 1
-            testHandyJSON.name = "abc"
-            self.jsonPlist.setValue([testHandyJSON, testHandyJSON, testHandyJSON], for: "test.abc")
-        }
+//        DispatchQueue.global().async {
+//            var testHandyJSON = TestHandyJSON()
+//            testHandyJSON.id = 1
+//            testHandyJSON.name = "abc"
+//            self.jsonPlist.setValue([testHandyJSON, testHandyJSON, testHandyJSON], for: "test.abc")
+//        }
 
 //        let data = jsonPlist.value(for: "test.abc", with: [TestHandyJSON].self)
 //        print(data)
@@ -80,6 +80,14 @@ class ViewController: UIViewController {
 //
 //        let value3 = testArray.value(at: 1, with: Int.self)
 //        print(value3)
+        
+        DispatchQueue.global().async {
+            if let url = URL(string: "https://iulia.s3.amazonaws.com/configs/local_noti.json"),
+                let data = try? Data(contentsOf: url),
+               let json = try? JSONSerialization.jsonObject(with: data, options: .fragmentsAllowed) as? [String: Any] {
+                self.testPlist.setValue(json, for: "json")
+            }
+        }
     }
 }
 

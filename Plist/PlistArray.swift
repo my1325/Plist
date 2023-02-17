@@ -7,6 +7,28 @@
 
 import Foundation
 
+private final class PlistArrayObserverWrapper: PlistArrayObserver {
+    private(set) weak var target: PlistArrayObserver?
+    init(target: PlistArrayObserver) {
+        self.target = target
+    }
+    
+    var isNil: Bool { target == nil }
+    
+    func plistDictionary(_ plistArray: PlistArray, valueChangedAt index: Int, with value: Any?) {
+        target?.plistDictionary(plistArray, valueChangedAt: index, with: value)
+    }
+    
+    class func ==(lhs: PlistArrayObserverWrapper, rhs: PlistArrayObserver) -> Bool {
+        guard !lhs.isNil else { return false }
+        return lhs.target! === rhs
+    }
+}
+
+public protocol PlistArrayObserver: AnyObject {
+    func plistDictionary(_ plistArray: PlistArray, valueChangedAt index: Int, with value: Any?)
+}
+
 public protocol PlistArrayCacheCompatible {
     func isValueExistsForKey(_ key: Int) -> Bool
     
@@ -32,6 +54,7 @@ public enum PlistArrayCacheStrategy {
 }
 
 public final class PlistArray: PlistContainer<[Any]> {
+    fileprivate private(set) var observerList: [Int: [PlistArrayObserverWrapper]] = [:]
     let lock = DispatchSemaphore(value: 1)
     public let cache: PlistArrayCacheCompatible
     public init(cacheStrategy: PlistArrayCacheStrategy = .default, configuration: PlistContainerConfiguration) {
@@ -47,6 +70,26 @@ public final class PlistArray: PlistContainer<[Any]> {
     }
     
     public var count: Int { container.count }
+    
+    public func addObserver(_ observer: PlistArrayObserver, at index: Int) {
+        lock.onLock {
+            self.clearNilObserver()
+            var _list = self.observerList[index] ?? []
+            _list.append(PlistArrayObserverWrapper(target: observer))
+            self.observerList[index] = _list
+        }
+    }
+    
+    public func removeObserver(_ observer: PlistArrayObserver, at index: Int) {
+        lock.onLock {
+            self.clearNilObserver()
+            var _list = self.observerList[index] ?? []
+            if let index = _list.firstIndex(where: { $0 == observer }) {
+                _list.remove(at: index)
+            }
+            self.observerList[index] = _list
+        }
+    }
     
     public subscript<T>(_ index: Int) -> T? {
         get { value(at: index, with: T.self) }
@@ -95,6 +138,21 @@ public final class PlistArray: PlistContainer<[Any]> {
             
             try setContainer(_container)
             cache.setValue(value, for: index)
+            invokeObserverWithValue(value, at: index)
+        } catch {
+            delegate?.plist(errorOccurred: PlistError.encodeTypeError)
+        }
+    }
+    
+    public func removeValue(_ at: Int) {
+        lock.lock(); defer { lock.unlock() }
+        precondition(at < count)
+        do {
+            var _container = container
+            _container.remove(at: at)
+            try setContainer(_container)
+            cache.setValue(nil, for: at)
+            invokeObserverWithValue(nil, at: at)
         } catch {
             delegate?.plist(errorOccurred: PlistError.encodeTypeError)
         }
@@ -102,6 +160,25 @@ public final class PlistArray: PlistContainer<[Any]> {
 }
 
 extension PlistArray {
+    
+    private func invokeObserverWithValue(_ value: Any?, at index: Int) {
+        let _list = observerList[index] ?? []
+        for o in _list {
+            guard !o.isNil else { continue }
+            o.plistDictionary(self, valueChangedAt: index, with: value)
+        }
+    }
+    
+    private func clearNilObserver() {
+        for case (let key, var list) in observerList {
+            for i in stride(from: list.count - 1, through: 0, by: -1) {
+                if list[i].isNil {
+                    list.remove(at: i)
+                }
+            }
+            observerList[key] = list
+        }
+    }
     
     private func readValue<T>(at index: Int, with type: T.Type, from container: [Any]) -> T? {
         guard index < container.count else { return nil }

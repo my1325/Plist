@@ -123,6 +123,22 @@ public final class PlistDictionary: PlistContainer<[String: Any]> {
             delegate?.plist(errorOccurred: .encodeTypeError)
         }
     }
+    
+    public func removeValue(_ keyPath: String) {
+        lock.lock(); defer { lock.unlock() }
+        var _container = container
+        let keyQueue = keyPath.split(separator: ".").filter { !$0.isEmpty }.map { String($0) }
+        if let key = keyQueue.last {
+            do {
+                _container.removeValue(forKey: key)
+                try setContainer(_container)
+                cache.setValue(nil, for: keyPath)
+                invokeObserverWithValue(nil, for: keyPath)
+            } catch {
+                delegate?.plist(errorOccurred: .encodeTypeError)
+            }
+        }
+    }
 }
 
 extension PlistDictionary {
@@ -135,13 +151,13 @@ extension PlistDictionary {
     }
     
     private func clearNilObserver() {
-        for var (keyPath, list) in observerList {
+        for case (let key, var list) in observerList {
             for i in stride(from: list.count - 1, through: 0, by: -1) {
                 if list[i].isNil {
                     list.remove(at: i)
                 }
             }
-            observerList[keyPath] = list
+            observerList[key] = list
         }
     }
     

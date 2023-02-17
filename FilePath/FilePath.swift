@@ -68,35 +68,121 @@ public enum FilePath {
         }
         return filePath
     }
+    
+    public var pathExtension: String {
+        if let index = filePath.lastIndex(of: ".") {
+            let range = index ..< filePath.endIndex
+            return String(filePath[range])
+        }
+        return ""
+    }
 }
 
-extension FilePath {
-    
-    public mutating func asFile(_ fileName: String) {
-        guard isDirectory else { return }
-        let fullPath = String(format: "%@/%@", filePath, fileName)
+public extension FilePath {
+    mutating func appendingLastFilePathConponent(_ pathConponent: String) {
+        precondition(isDirectory, "\(self) is not directory")
+        let fullPath = String(format: "%@/%@", filePath, pathConponent)
         self = .file(file: fullPath)
     }
     
-    public mutating func withSubDirectory(_ directoryName: String) {
-        guard isDirectory else { return }
-        let fullPath = String(format: "%@/%@", directoryName)
+    mutating func appendingFilePathExtension(_ pathExtension: String) {
+        precondition(isFile, "\(self) is not file")
+        let fullPath = String(format: "%@/.%@", filePath, pathExtension)
+        self = .file(file: fullPath)
+    }
+    
+    mutating func removingLastFilePathConponent() {
+        precondition(isFile, "\(self) is not file")
+        let _filePath = filePath
+        if let index = _filePath.lastIndex(of: "/") {
+            let range = _filePath.startIndex ..< index
+            let fullPath = String(_filePath[range])
+            self = .directory(directory: fullPath)
+        }
+    }
+    
+    mutating func removingFilePathExtension() {
+        precondition(isFile, "\(self) is not file")
+        let _filePath = filePath
+        if let index = _filePath.lastIndex(of: ".") {
+            let range = _filePath.startIndex ..< index
+            let fullPath = String(_filePath[range])
+            self = .file(file: fullPath)
+        }
+    }
+    
+    mutating func appendingDirectoryPathConponent(_ pathConponent: String) {
+        precondition(isDirectory, "\(self) is not directory")
+        let fullPath = String(format: "%@/%@", filePath, pathConponent)
         self = .directory(directory: fullPath)
     }
     
-    public func toFile(_ fileName: String) -> FilePath {
+    mutating func removingLastDirectoryPathConponent() {
         precondition(isDirectory, "\(self) is not directory")
-        let fullPath = String(format: "%@/%@", filePath, fileName)
+        let _filePath = filePath
+        if let index = _filePath.lastIndex(of: "/") {
+            let range = _filePath.startIndex ..< index
+            let fullPath = String(_filePath[range])
+            self = .directory(directory: fullPath)
+        }
+    }
+}
+
+public extension FilePath {
+    func appendFilePathConponent(_ pathConponent: String) -> FilePath {
+        precondition(isDirectory, "\(self) is not directory")
+        let fullPath = String(format: "%@/%@", filePath, pathConponent)
         return .file(file: fullPath)
     }
     
-    public func toSubDirectory(_ directoryName: String) -> FilePath {
+    func appendFilePathExtension(_ pathConponent: String) -> FilePath {
+        precondition(isFile, "\(self) is not file")
+        let fullPath = String(format: "%@/.%@", filePath, pathExtension)
+        return .file(file: fullPath)
+    }
+    
+    func removeLastFilePathConponent() -> FilePath {
+        precondition(isFile, "\(self) is not file")
+        let _filePath = filePath
+        if let index = _filePath.lastIndex(of: "/") {
+            let range = _filePath.startIndex ..< index
+            let fullPath = String(_filePath[range])
+            return .directory(directory: fullPath)
+        }
+        return self
+    }
+    
+    func removeFilePathExtension() -> FilePath {
+        precondition(isFile, "\(self) is not file")
+        let _filePath = filePath
+        if let index = _filePath.lastIndex(of: ".") {
+            let range = _filePath.startIndex ..< index
+            let fullPath = String(_filePath[range])
+            return .file(file: fullPath)
+        }
+        return self
+    }
+    
+    func appendDirectionPathConponent(_ directoryName: String) -> FilePath {
         precondition(isDirectory, "\(self) is not directory")
-        let fullPath = String(format: "%@/%@", directoryName)
+        let fullPath = String(format: "%@/%@", filePath, directoryName)
         return .directory(directory: fullPath)
     }
     
-    public func createIfNotExists() throws {
+    func removeLastDirectoryPathConponent() -> FilePath {
+        precondition(isDirectory, "\(self) is not directory")
+        let _filePath = filePath
+        if let index = _filePath.lastIndex(of: "/") {
+            let range = _filePath.startIndex ..< index
+            let fullPath = String(_filePath[range])
+            return .directory(directory: fullPath)
+        }
+        return self
+    }
+}
+
+public extension FilePath {
+    func createIfNotExists() throws {
         guard !isExists else { return }
         if isFile {
             try parentDirectory.createIfNotExists()
@@ -106,13 +192,13 @@ extension FilePath {
         }
     }
     
-    public func writeData(_ data: Data) throws {
+    func writeData(_ data: Data) throws {
         precondition(isFile, "\(self) is not file")
         try createIfNotExists()
         try data.write(to: URL(fileURLWithPath: filePath))
     }
     
-    public func readData() throws -> Data {
+    func readData() throws -> Data {
         precondition(isFile, "\(self) is not file")
         return try Data(contentsOf: URL(fileURLWithPath: filePath))
     }

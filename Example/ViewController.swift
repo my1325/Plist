@@ -30,9 +30,9 @@ struct TestHandyJSON: HandyJSON {
 class ViewController: UIViewController {
 
 //    let infoPlist = PlistDictionary(configuration: .plistWithPath(.infoPlist))
-    let testPlist = PlistDictionary(configuration: .defaultPlistConfiguration(with: .document.toFile("default.plist")))
+    let testPlist = PlistDictionary(configuration: .defaultPlistConfiguration(with: .document.appendFilePathConponent("default.plist")))
 //    let testArray = PlistArray(configuration: .plistWithPath(.document.toFile("defaultArray.plist")))
-    let jsonPlist = PlistDictionary(configuration: .JSONPlistConfiguration(with: .document.toFile("json_test.json")))
+    let jsonPlist = PlistDictionary(configuration: .JSONPlistConfiguration(with: .document.appendFilePathConponent("json_test.json")))
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.

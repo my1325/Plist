@@ -51,14 +51,6 @@ public enum PlistDictionaryStrategy {
     case none
     case `default`
     case custom(PlistDictionaryCacheCompatible)
-    
-    var cache: PlistDictionaryCacheCompatible {
-        switch self {
-        case .none: return PlistDictionaryNoneCache()
-        case .default: return PlistCache<String>(capacity: 20, queue: DispatchQueue(label: "com.ge.plist.cache.queue"))
-        case let .custom(cache): return cache
-        }
-    }
 }
 
 public final class PlistDictionary: PlistContainer<[String: Any]> {
@@ -66,7 +58,14 @@ public final class PlistDictionary: PlistContainer<[String: Any]> {
     let lock = DispatchSemaphore(value: 1)
     public let cache: PlistDictionaryCacheCompatible
     public init(cacheStrategy: PlistDictionaryStrategy = .default, configuration: PlistContainerConfiguration) {
-        self.cache = cacheStrategy.cache
+        switch cacheStrategy {
+        case .none:
+            self.cache = PlistDictionaryNoneCache()
+        case .default:
+            self.cache = PlistCache<String>(capacity: 20, queue: DispatchQueue(label: "com.ge.plist.cache.queue"), isAsynchornized: configuration.isASynchornizedCache)
+        case let .custom(cache):
+            self.cache = cache
+        }
         super.init(container: [:], configuration: configuration)
     }
     

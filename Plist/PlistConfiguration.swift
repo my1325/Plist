@@ -86,6 +86,7 @@ public struct PlistContainerConfiguration {
     public let shouldCacheOriginData: Bool
     public let readContainerSynchronize: Bool
     public let creatFileSynchorizedIfNotExists: Bool
+    public let isASynchornizedCache: Bool
 }
 
 open class PlistDefaultCoder: PlistContainerEncoder, PlistContainerDecoder {
@@ -125,12 +126,24 @@ public extension PlistContainerConfiguration {
     static func defaultPlistConfiguration(with path: FilePath, shouldCacheOriginData: Bool = true, readContainerSynchronize: Bool = true) -> PlistContainerConfiguration {
         let decoder = PlistDefaultCoder()
         let encoder = PlistDefaultCoder()
-        return PlistContainerConfiguration(path: path, decoder: decoder, encoder: encoder, shouldCacheOriginData: shouldCacheOriginData, readContainerSynchronize: readContainerSynchronize, creatFileSynchorizedIfNotExists: true)
+        return PlistContainerConfiguration(path: path,
+                                           decoder: decoder,
+                                           encoder: encoder,
+                                           shouldCacheOriginData: shouldCacheOriginData,
+                                           readContainerSynchronize: readContainerSynchronize,
+                                           creatFileSynchorizedIfNotExists: true,
+                                           isASynchornizedCache: false)
     }
     
     static func JSONPlistConfiguration(with path: FilePath, shouldCacheOriginData: Bool = true, readContainerSynchronize: Bool = true) -> PlistContainerConfiguration {
         let decoder = PlistJSONCoder()
         let encoder = PlistJSONCoder()
-        return PlistContainerConfiguration(path: path, decoder: decoder, encoder: encoder, shouldCacheOriginData: shouldCacheOriginData, readContainerSynchronize: readContainerSynchronize, creatFileSynchorizedIfNotExists: true)
+        return PlistContainerConfiguration(path: path,
+                                           decoder: decoder,
+                                           encoder: encoder,
+                                           shouldCacheOriginData: shouldCacheOriginData,
+                                           readContainerSynchronize: readContainerSynchronize,
+                                           creatFileSynchorizedIfNotExists: true,
+                                           isASynchornizedCache: false)
     }
 }

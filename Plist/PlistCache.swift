@@ -28,7 +28,6 @@ public final class PlistLinkedListNode<Key: Equatable> {
 }
 
 public final class PlistLinkedList<Key: Equatable> {
-    
     public private(set) var count: Int = 0
     
     public private(set) var head: PlistLinkedListNode<Key>?
@@ -123,9 +122,11 @@ public final class PlistCache<Key: Hashable & Equatable> {
     private var map: [Key: PlistLinkedListNode<Key>] = [:]
     public let capacity: Int
     private let queue: DispatchQueue
-    public init(capacity: Int, queue: DispatchQueue) {
+    private let isAsynchornized: Bool
+    public init(capacity: Int, queue: DispatchQueue, isAsynchornized: Bool) {
         self.capacity = capacity
         self.queue = queue
+        self.isAsynchornized = isAsynchornized
     }
     
     public var isEmpty: Bool { list.isEmpty }
@@ -158,24 +159,43 @@ public final class PlistCache<Key: Hashable & Equatable> {
     }
     
     private func _addValue(_ value: Any, for key: Key) {
-        queue.async { [weak self] in
-            if self?.isValueExistsForKey(key) == true, let node = self?.map[key] {
-                node.value = value
-                self?.list.insertToHead(node)
-            } else if let node = self?.list.add(value, for: key) {
-                self?.list.insertToHead(node)
-                self?.map[key] = node
+        if isAsynchornized {
+            queue.async { [weak self] in
+                if self?.isValueExistsForKey(key) == true, let node = self?.map[key] {
+                    node.value = value
+                    self?.list.insertToHead(node)
+                } else if let node = self?.list.add(value, for: key) {
+                    self?.list.insertToHead(node)
+                    self?.map[key] = node
+                }
+                self?.ensureCapacity()
             }
-            self?.ensureCapacity()
+        } else {
+            if isValueExistsForKey(key) == true, let node = map[key] {
+                node.value = value
+                list.insertToHead(node)
+            } else {
+                let node = list.add(value, for: key)
+                list.insertToHead(node)
+                map[key] = node
+            }
+            ensureCapacity()
         }
     }
     
     private func _removeValue(for key: Key) {
-        queue.async { [weak self] in
-            if let node = self?.map[key] {
-                self?.list.removeNode(node)
+        if isAsynchornized {
+            queue.async { [weak self] in
+                if let node = self?.map[key] {
+                    self?.list.removeNode(node)
+                }
+                self?.map.removeValue(forKey: key)
             }
-            self?.map.removeValue(forKey: key)
+        } else {
+            if let node = map[key] {
+                list.removeNode(node)
+            }
+            map.removeValue(forKey: key)
         }
     }
     

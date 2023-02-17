@@ -29,21 +29,20 @@ public enum PlistArrayCacheStrategy {
     case none
     case `default`
     case custom(PlistArrayCacheCompatible)
-    
-    var cache: PlistArrayCacheCompatible {
-        switch self {
-        case .none: return PlistArrayNoneCache()
-        case .default: return PlistCache<Int>(capacity: 20, queue: DispatchQueue(label: "com.ge.plist.cache.queue"))
-        case let .custom(cache): return cache
-        }
-    }
 }
 
 public final class PlistArray: PlistContainer<[Any]> {
     let lock = DispatchSemaphore(value: 1)
     public let cache: PlistArrayCacheCompatible
     public init(cacheStrategy: PlistArrayCacheStrategy = .default, configuration: PlistContainerConfiguration) {
-        self.cache = cacheStrategy.cache
+        switch cacheStrategy {
+        case .none:
+            self.cache = PlistArrayNoneCache()
+        case .default:
+            self.cache = PlistCache<Int>(capacity: 20, queue: DispatchQueue(label: "com.ge.plist.cache.queue"), isAsynchornized: configuration.isASynchornizedCache)
+        case let .custom(cache):
+            self.cache = cache
+        }
         super.init(container: [], configuration: configuration)
     }
     

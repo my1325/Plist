@@ -202,4 +202,23 @@ public extension FilePath {
         precondition(isFile, "\(self) is not file")
         return try Data(contentsOf: URL(fileURLWithPath: filePath))
     }
+    
+    func fileIterator() throws -> FileIterator {
+        precondition(isFile, "\(self) is not file")
+        return try FileIterator(url: URL(fileURLWithPath: filePath))
+    }
+    
+    func readLine(_ block: @escaping (String) -> Void) throws {
+        for line in try fileIterator() {
+            block(line)
+        }
+    }
+    
+    func readLines() throws -> [String] {
+        var lines: [String] = []
+        for line in try fileIterator() {
+            lines.append(line)
+        }
+        return lines
+    }
 }

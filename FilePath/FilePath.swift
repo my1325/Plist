@@ -19,6 +19,19 @@ public enum FilePath {
     
     case infoPlist
     
+    public var filePath: String {
+        switch self {
+        case .document: return NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
+        case .library: return NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true)[0]
+        case .cache: return NSSearchPathForDirectoriesInDomains(.cachesDirectory, .userDomainMask, true)[0]
+        case .temp: return NSTemporaryDirectory()
+        case .mainBundle: return Bundle.main.bundlePath
+        case .infoPlist: return Bundle.main.path(forResource: "Info", ofType: "plist")!
+        case let .directory(directory): return directory
+        case let .file(file): return file
+        }
+    }
+    
     public var isFile: Bool {
         switch self {
         case .file, .infoPlist: return true
@@ -33,24 +46,38 @@ public enum FilePath {
         }
     }
     
-    public var filePath: String {
-        switch self {
-        case .document: return NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
-        case .library: return NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true)[0]
-        case .cache: return NSSearchPathForDirectoriesInDomains(.cachesDirectory, .userDomainMask, true)[0]
-        case .temp: return NSTemporaryDirectory()
-        case .mainBundle: return Bundle.main.bundlePath
-        case .infoPlist: return Bundle.main.path(forResource: "Info", ofType: "plist")!
-        case let .directory(directory): return directory
-        case let .file(file): return file
-        }
-    }
-    
     public var isExists: Bool {
         let fileManager = FileManager.default
         var _isDirectory: ObjCBool = false
         let ret = fileManager.fileExists(atPath: filePath, isDirectory: &_isDirectory)
         return ret && (isFile && !_isDirectory.boolValue || isDirectory && _isDirectory.boolValue)
+    }
+    
+    public var subpaths: [String] {
+        precondition(isDirectory, "\(self) is not directory")
+        return FileManager.default.subpaths(atPath: filePath) ?? []
+    }
+    
+    public var subfilePaths: [FilePath] {
+        precondition(isDirectory, "\(self) is not directory")
+        let subpathName = subpaths
+        var isDirectory: ObjCBool = false
+        var subFilePaths: [FilePath] = []
+        for name in subpathName {
+            let fullPath = String(format: "%@/%@", filePath, name)
+            if FileManager.default.fileExists(atPath: fullPath, isDirectory: &isDirectory) {
+                if isDirectory.boolValue {
+                    subFilePaths.append(.directory(directory: fullPath))
+                } else {
+                    subFilePaths.append(.file(file: fullPath))
+                }
+            }
+        }
+        return subFilePaths
+    }
+    
+    public var isEmpty: Bool {
+        return subpaths.isEmpty
     }
     
     public var parentDirectory: FilePath {
@@ -91,8 +118,7 @@ public extension FilePath {
         self = .file(file: fullPath)
     }
     
-    mutating func removingLastFilePathConponent() {
-        precondition(isFile, "\(self) is not file")
+    mutating func removingLastPathConponent() {
         let _filePath = filePath
         if let index = _filePath.lastIndex(of: "/") {
             let range = _filePath.startIndex ..< index
@@ -117,14 +143,20 @@ public extension FilePath {
         self = .directory(directory: fullPath)
     }
     
-    mutating func removingLastDirectoryPathConponent() {
-        precondition(isDirectory, "\(self) is not directory")
-        let _filePath = filePath
-        if let index = _filePath.lastIndex(of: "/") {
-            let range = _filePath.startIndex ..< index
-            let fullPath = String(_filePath[range])
-            self = .directory(directory: fullPath)
+    mutating func rename(_ newName: String) throws {
+        let newPath: FilePath
+        if isFile {
+            newPath = parentDirectory.appendFilePathConponent(newName)
+        } else {
+            newPath = parentDirectory.appendDirectionPathConponent(newName)
         }
+        try FileManager.default.moveItem(atPath: filePath, toPath: newPath.filePath)
+        self = newPath
+    }
+    
+    mutating func movingToNewPath(_ newPath: FilePath) throws {
+        try FileManager.default.moveItem(atPath: filePath, toPath: newPath.filePath)
+        self = newPath
     }
 }
 
@@ -141,7 +173,7 @@ public extension FilePath {
         return .file(file: fullPath)
     }
     
-    func removeLastFilePathConponent() -> FilePath {
+    func removeLastPathConponent() -> FilePath {
         precondition(isFile, "\(self) is not file")
         let _filePath = filePath
         if let index = _filePath.lastIndex(of: "/") {
@@ -169,15 +201,20 @@ public extension FilePath {
         return .directory(directory: fullPath)
     }
     
-    func removeLastDirectoryPathConponent() -> FilePath {
-        precondition(isDirectory, "\(self) is not directory")
-        let _filePath = filePath
-        if let index = _filePath.lastIndex(of: "/") {
-            let range = _filePath.startIndex ..< index
-            let fullPath = String(_filePath[range])
-            return .directory(directory: fullPath)
+    func renamed(_ newName: String) throws -> FilePath {
+        let newPath: FilePath
+        if isFile {
+            newPath = parentDirectory.appendFilePathConponent(newName)
+        } else {
+            newPath = parentDirectory.appendDirectionPathConponent(newName)
         }
-        return self
+        try FileManager.default.moveItem(atPath: filePath, toPath: newPath.filePath)
+        return newPath
+    }
+    
+    func moveToNewPath(_ newPath: FilePath) throws -> FilePath {
+        try FileManager.default.moveItem(atPath: filePath, toPath: newPath.filePath)
+        return newPath
     }
 }
 
@@ -189,6 +226,18 @@ public extension FilePath {
             FileManager.default.createFile(atPath: filePath, contents: nil)
         } else {
             try FileManager.default.createDirectory(atPath: filePath, withIntermediateDirectories: true)
+        }
+    }
+    
+    func remove() throws {
+        if isFile {
+            try FileManager.default.removeItem(atPath: filePath)
+        } else {
+            let subpaths = subfilePaths
+            for path in subpaths {
+                try path.remove()
+            }
+            try FileManager.default.removeItem(atPath: filePath)
         }
     }
     

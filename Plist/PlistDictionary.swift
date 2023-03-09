@@ -70,23 +70,19 @@ public final class PlistDictionary: PlistContainer<[String: Any]> {
     }
     
     public func addObserver(_ observer: PlistDictionaryObserver, for keyPath: String) {
-        lock.onLock {
-            self.clearNilObserver()
-            var _list = self.observerList[keyPath] ?? []
-            _list.append(PlistDictionaryObserverWrapper(target: observer))
-            self.observerList[keyPath] = _list
-        }
+        clearNilObserver()
+        var _list = observerList[keyPath] ?? []
+        _list.append(PlistDictionaryObserverWrapper(target: observer))
+        observerList[keyPath] = _list
     }
     
     public func removeObserver(_ observer: PlistDictionaryObserver, for keyPath: String) {
-        lock.onLock {
-            self.clearNilObserver()
-            var _list = self.observerList[keyPath] ?? []
-            if let index = _list.firstIndex(where: { $0 == observer }) {
-                _list.remove(at: index)
-            }
-            self.observerList[keyPath] = _list
+        clearNilObserver()
+        var _list = observerList[keyPath] ?? []
+        if let index = _list.firstIndex(where: { $0 == observer }) {
+            _list.remove(at: index)
         }
+        observerList[keyPath] = _list
     }
     
     public subscript<T>(keyPath: String) -> T? {

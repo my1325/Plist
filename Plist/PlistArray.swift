@@ -72,23 +72,19 @@ public final class PlistArray: PlistContainer<[Any]> {
     public var count: Int { container.count }
     
     public func addObserver(_ observer: PlistArrayObserver, at index: Int) {
-        lock.onLock {
-            self.clearNilObserver()
-            var _list = self.observerList[index] ?? []
-            _list.append(PlistArrayObserverWrapper(target: observer))
-            self.observerList[index] = _list
-        }
+        clearNilObserver()
+        var _list = observerList[index] ?? []
+        _list.append(PlistArrayObserverWrapper(target: observer))
+        observerList[index] = _list
     }
     
     public func removeObserver(_ observer: PlistArrayObserver, at index: Int) {
-        lock.onLock {
-            self.clearNilObserver()
-            var _list = self.observerList[index] ?? []
-            if let index = _list.firstIndex(where: { $0 == observer }) {
-                _list.remove(at: index)
-            }
-            self.observerList[index] = _list
+        clearNilObserver()
+        var _list = observerList[index] ?? []
+        if let index = _list.firstIndex(where: { $0 == observer }) {
+            _list.remove(at: index)
         }
+        observerList[index] = _list
     }
     
     public subscript<T>(_ index: Int) -> T? {
@@ -160,7 +156,6 @@ public final class PlistArray: PlistContainer<[Any]> {
 }
 
 extension PlistArray {
-    
     private func invokeObserverWithValue(_ value: Any?, at index: Int) {
         let _list = observerList[index] ?? []
         for o in _list {

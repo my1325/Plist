@@ -55,7 +55,6 @@ public enum PlistDictionaryStrategy {
 
 public final class PlistDictionary: PlistContainer<[String: Any]> {
     fileprivate private(set) var observerList: [String: [PlistDictionaryObserverWrapper]] = [:]
-    let lock = DispatchSemaphore(value: 1)
     public let cache: PlistDictionaryCacheCompatible
     public init(cacheStrategy: PlistDictionaryStrategy = .default, configuration: PlistContainerConfiguration) {
         switch cacheStrategy {
@@ -107,7 +106,6 @@ public final class PlistDictionary: PlistContainer<[String: Any]> {
     }
         
     public func setValue<T>(_ value: T?, for keyPath: String) {
-        lock.lock(); defer { lock.unlock() }
         var _container = container
         let keyQueue = keyPath.split(separator: ".").filter { !$0.isEmpty }.map { String($0) }
         do {
@@ -121,7 +119,6 @@ public final class PlistDictionary: PlistContainer<[String: Any]> {
     }
     
     public func removeValue(_ keyPath: String) {
-        lock.lock(); defer { lock.unlock() }
         var _container = container
         let keyQueue = keyPath.split(separator: ".").filter { !$0.isEmpty }.map { String($0) }
         if let key = keyQueue.last {

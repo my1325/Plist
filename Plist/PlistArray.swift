@@ -55,7 +55,6 @@ public enum PlistArrayCacheStrategy {
 
 public final class PlistArray: PlistContainer<[Any]> {
     fileprivate private(set) var observerList: [Int: [PlistArrayObserverWrapper]] = [:]
-    let lock = DispatchSemaphore(value: 1)
     public let cache: PlistArrayCacheCompatible
     public init(cacheStrategy: PlistArrayCacheStrategy = .default, configuration: PlistContainerConfiguration) {
         switch cacheStrategy {
@@ -109,7 +108,6 @@ public final class PlistArray: PlistContainer<[Any]> {
     }
     
     public func appendValue<T>(_ value: T) {
-        lock.lock(); defer { lock.unlock() }
         do {
             var _container = container
             try setValue(value: value, at: count, with: &_container)
@@ -121,7 +119,6 @@ public final class PlistArray: PlistContainer<[Any]> {
     }
         
     public func setValue<T>(_ value: T?, at index: Int) {
-        lock.lock(); defer { lock.unlock() }
         precondition(index < count)
         
         do {
@@ -141,7 +138,6 @@ public final class PlistArray: PlistContainer<[Any]> {
     }
     
     public func removeValue(_ at: Int) {
-        lock.lock(); defer { lock.unlock() }
         precondition(at < count)
         do {
             var _container = container

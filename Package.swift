@@ -7,16 +7,14 @@ let package = Package(
     name: "Plist",
     platforms: [.iOS(.v11)],
     products: [
-        .library(name: "FilePath", targets: ["FilePath"]),
-        .library(name: "DataWriter", targets: ["DataWriter"]),
-        .library(name: "Plist", targets: ["Plist"]),
+        .library(name: "Plist", targets: ["Plist", "DataWriter"]),
         .library(name: "PlistHandyJSONSupport", targets: ["PlistHandyJSONSupport"])
     ],
     dependencies: [
         .package(url: "https://github.com/alibaba/HandyJSON.git", from: "5.0.0"),
+        .package(url: "https://github.com/my1325/FilePath.git", branch: "main")
     ],
     targets: [
-        .target(name: "FilePath", dependencies: []),
         .target(name: "DataWriter", dependencies: ["FilePath"]),
         .target(name: "Plist", dependencies: ["FilePath", "DataWriter"]),
         .target(name: "PlistHandyJSONSupport", dependencies: [

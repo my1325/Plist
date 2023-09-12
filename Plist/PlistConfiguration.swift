@@ -6,9 +6,7 @@
 //
 
 import Foundation
-#if canImport(FilePath)
 import FilePath
-#endif 
 
 public protocol PlistIsBasicCodableType {}
 extension Int: PlistIsBasicCodableType {}

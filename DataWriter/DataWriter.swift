@@ -6,7 +6,11 @@
 //
 
 import Foundation
+#if canImport(FilePath)
 import FilePath
+#else
+import GeFilePath
+#endif
 
 public protocol DataWriterDelegate: AnyObject {
     func writer(_ writer: DataWriter, errorOccurredWhenWrite error: Error)

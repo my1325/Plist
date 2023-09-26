@@ -8,6 +8,8 @@
 import Foundation
 #if canImport(FilePath)
 import FilePath
+#else
+import GeFilePath
 #endif
 
 public protocol DataReaderDelegate: AnyObject {

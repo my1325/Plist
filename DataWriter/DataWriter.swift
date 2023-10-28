@@ -6,11 +6,6 @@
 //
 
 import Foundation
-#if canImport(FilePath)
-import FilePath
-#else
-import GeFilePath
-#endif
 
 public protocol DataWriterDelegate: AnyObject {
     func writer(_ writer: DataWriter, errorOccurredWhenWrite error: Error)
@@ -18,9 +13,9 @@ public protocol DataWriterDelegate: AnyObject {
 
 public let plist_writer_queue = "com.ge.plist.write.queue"
 public final class DataWriter {
-    public let path: FilePath
+    public let path: String
     public let queue: DispatchQueue
-    public init(path: FilePath, queue: DispatchQueue = DispatchQueue(label: plist_writer_queue, qos: .background)) {
+    public init(path: String, queue: DispatchQueue = DispatchQueue(label: plist_writer_queue, qos: .background)) {
         self.path = path
         self.queue = queue
     }
@@ -52,7 +47,7 @@ public final class DataWriter {
                 self?.isWaitToWrite = false
                 if let _self = self, let _data = _self.dataNeedToWrite {
                     do {
-                        try _self.path.writeData(_data)
+                        try _data.write(to: URL(fileURLWithPath: _self.path))
                         _self.dataNeedToWrite = nil
                     } catch {
                         self?.delegate?.writer(_self, errorOccurredWhenWrite: error)

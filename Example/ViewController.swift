@@ -14,6 +14,7 @@ import FilePath
 import GePlist
 #endif
 import HandyJSON
+import Combine
 
 struct TestCodable: Codable {
     let id: Int
@@ -28,17 +29,39 @@ struct TestHandyJSON: HandyJSON {
 }
 
 class ViewController: UIViewController {
-
+    
+    @DefaultPlistWrapper(keyPath: "abc")
+    var a: Int?
+    
 //    let infoPlist = PlistDictionary(configuration: .plistWithPath(.infoPlist))
-    let testPlist = PlistDictionary(configuration: .defaultPlistConfiguration(with: .document.appendFilePathConponent("default.plist")))
+    let testPlist = PlistDictionary(configuration: .defaultPlistConfiguration(named: "default.plist"))
 //    let testArray = PlistArray(configuration: .plistWithPath(.document.toFile("defaultArray.plist")))
-    let jsonPlist = PlistDictionary(configuration: .JSONPlistConfiguration(with: .document.appendFilePathConponent("json_test.json")))
+    let jsonPlist = PlistDictionary(configuration: .JSONPlistConfiguration(named: "default.json"))
+    
+    var sinkCollection: Set<AnyCancellable> = []
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
 //        jsonPlist.setValue(["a": 1, "b": ["1": 2, "2": "2"], "c": [1, 2, "3"]], for: "test")
-        jsonPlist.addObserver(self, for: "test.abc")
+//        jsonPlist.addObserver(self, for: "test.abc")
+        testPlist.observe("test.abc", type: Int.self).sink {
+            print("asdlfjasldkf \($0)")
+        }
+        .store(in: &sinkCollection)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            self.testPlist["test.abc"] = 1
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+            self.testPlist["test.abc"] = "1"
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 6) {
+//            self.testPlist[p]
+            self.sinkCollection.removeAll()
+        }
 //        let data1 = jsonPlist.value(for: "test.c", with: [Any].self)
 //        let data2 = jsonPlist.value(for: "test.a", with: Int.self)
 //        let data3 = jsonPlist.value(for: "test.b", with: [String: Any].self)
@@ -81,13 +104,14 @@ class ViewController: UIViewController {
 //        let value3 = testArray.value(at: 1, with: Int.self)
 //        print(value3)
         
-        DispatchQueue.global().async {
-            if let url = URL(string: "https://iulia.s3.amazonaws.com/configs/local_noti.json"),
-                let data = try? Data(contentsOf: url),
-               let json = try? JSONSerialization.jsonObject(with: data, options: .fragmentsAllowed) as? [String: Any] {
-                self.testPlist.setValue(json, for: "json")
-            }
-        }
+//        let a = testPlist["test", 1]
+//        DispatchQueue.global().async {
+//            if let url = URL(string: "https://iulia.s3.amazonaws.com/configs/local_noti.json"),
+//                let data = try? Data(contentsOf: url),
+//               let json = try? JSONSerialization.jsonObject(with: data, options: .fragmentsAllowed) as? [String: Any] {
+//                self.testPlist.setValue(json, for: "json")
+//            }
+//        }
     }
 }
 

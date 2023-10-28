@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 private final class PlistDictionaryObserverWrapper: PlistDictionaryObserver {
     private(set) weak var target: PlistDictionaryObserver?
@@ -53,7 +54,11 @@ public enum PlistDictionaryStrategy {
     case custom(PlistDictionaryCacheCompatible)
 }
 
+@dynamicMemberLookup
 public final class PlistDictionary: PlistContainer<[String: Any]> {
+    
+    public static let `default` = PlistDictionary(configuration: .defaultPlistConfiguration(named: "default.plist"))
+    
     fileprivate private(set) var observerList: [String: [PlistDictionaryObserverWrapper]] = [:]
     public let cache: PlistDictionaryCacheCompatible
     public init(cacheStrategy: PlistDictionaryStrategy = .default, configuration: PlistContainerConfiguration) {
@@ -84,8 +89,13 @@ public final class PlistDictionary: PlistContainer<[String: Any]> {
         observerList[keyPath] = _list
     }
     
-    public subscript<T>(keyPath: String) -> T? {
-        get { value(for: keyPath, with: T.self) }
+    public subscript<T>(dynamicMember dynamicMember: String) -> T? {
+        get { self[dynamicMember] }
+        set { self[dynamicMember] = newValue }
+    }
+    
+    public subscript<T>(keyPath: String, default: T? = nil) -> T? {
+        get { value(for: keyPath, with: T.self, defaultValue: `default`) }
         set { setValue(newValue, for: keyPath) }
     }
     
@@ -136,10 +146,12 @@ public final class PlistDictionary: PlistContainer<[String: Any]> {
 
 extension PlistDictionary {
     private func invokeObserverWithValue(_ value: Any?, for keyPath: String) {
-        let _list = observerList[keyPath] ?? []
-        for o in _list {
-            guard !o.isNil else { continue }
-            o.plistDictionary(self, valueChangedWith: keyPath, with: value)
+        DispatchQueue.main.async {
+            let _list = self.observerList[keyPath] ?? []
+            for o in _list {
+                guard !o.isNil else { continue }
+                o.plistDictionary(self, valueChangedWith: keyPath, with: value)
+            }
         }
     }
     
@@ -235,6 +247,84 @@ extension PlistDictionary {
             container[key] = object
         } catch {
             delegate?.plist(errorOccurred: .encode(error))
+        }
+    }
+}
+
+fileprivate class _PlistDictionaryObserver<T>: PlistDictionaryObserver {
+    var callback: ((T?) -> Void)?
+    let keyPath: String
+    init(_ keyPath: String) {
+        self.keyPath = keyPath
+    }
+    
+    func plistDictionary(_ plistDictionary: PlistDictionary, valueChangedWith keyPath: String, with value: Any?) {
+        guard keyPath == self.keyPath else { return }
+        let _value: T? = (value as? T) ?? plistDictionary[keyPath]
+       callback?(_value)
+    }
+}
+
+fileprivate final class _PlistDictionaryPublisher<T>: _PlistDictionaryObserver<T>, Publisher {
+    typealias Output = T?
+    typealias Failure = Never
+    
+    private final class _PlistDictionaryObserverSubcription<T>: Subscription {
+        let keyPath: String
+        let subscriber: AnySubscriber<T?, Never>
+        private var _parent: _PlistDictionaryObserver<T>?
+        init<S: Subscriber>(_ subscriber: S, keyPath: String, observer: _PlistDictionaryObserver<T>) where S.Failure == Never, S.Input == T? {
+            self.keyPath = keyPath
+            self.subscriber = AnySubscriber(subscriber)
+            self._parent = observer
+            observer.callback = { [weak self] in
+                _ = self?.subscriber.receive($0)
+            }
+        }
+        
+        func request(_ demand: Subscribers.Demand) {}
+
+        func cancel() {
+            _parent = nil
+            _parent?.callback = nil
+        }
+    }
+    
+    init(keyPath: String, type: T.Type) {
+        super.init(keyPath)
+    }
+    
+    func receive<S>(subscriber: S) where S : Subscriber, Never == S.Failure, T? == S.Input {
+        let subscription = _PlistDictionaryObserverSubcription(subscriber, keyPath: keyPath, observer: self)
+        subscriber.receive(subscription: subscription)
+    }
+}
+
+extension PlistDictionary {
+    public func observe<T>(_ keyPath: String, type: T.Type) -> AnyPublisher<T?, Never> {
+        let plistDictionaryPublisher = _PlistDictionaryPublisher(keyPath: keyPath, type: type)
+        addObserver(plistDictionaryPublisher, for: keyPath)
+        return plistDictionaryPublisher
+            .eraseToAnyPublisher()
+    }
+}
+
+@propertyWrapper
+public final class DefaultPlistWrapper<T> {
+    let keyPath: String
+    let defaultValue: T?
+    public init(keyPath: String, defaultValue: T? = nil) {
+        self.keyPath = keyPath
+        self.defaultValue = defaultValue
+    }
+    
+    public var projectedValue: PassthroughSubject<T?, Never> = PassthroughSubject()
+    
+    public var wrappedValue: T? {
+        get { PlistDictionary.default.value(for: keyPath, with: T.self, defaultValue: defaultValue) }
+        set {
+            PlistDictionary.default.setValue(newValue, for: keyPath)
+            projectedValue.send(newValue)
         }
     }
 }

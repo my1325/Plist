@@ -6,11 +6,6 @@
 //
 
 import Foundation
-#if canImport(FilePath)
-import FilePath
-#else
-import GeFilePath
-#endif
 
 public protocol DataReaderDelegate: AnyObject {
     func reader(_ reader: DataReader, errorOccurredWhenRead error: Error)
@@ -19,16 +14,16 @@ public protocol DataReaderDelegate: AnyObject {
 
 public let plist_reader_queue = "com.ge.plist.read.queue"
 public final class DataReader {
-    public let path: FilePath
+    public let path: String
     public let queue: DispatchQueue
-    public init(path: FilePath, queue: DispatchQueue = DispatchQueue(label: plist_reader_queue, qos: .background)) {
+    public init(path: String, queue: DispatchQueue = DispatchQueue(label: plist_reader_queue, qos: .background)) {
         self.path = path
         self.queue = queue
     }
 
     public weak var delegate: DataReaderDelegate?
     public func readDataSynchronize() throws -> Data {
-        try self.path.readData()
+        try Data(contentsOf: URL(fileURLWithPath: path))
     }
 
     public func readData() {

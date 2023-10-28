@@ -6,11 +6,6 @@
 //
 
 import Foundation
-#if canImport(FilePath)
-import FilePath
-#else
-import GeFilePath
-#endif
 #if canImport(DataWriter)
 import DataWriter
 #endif
@@ -57,12 +52,12 @@ open class PlistContainer<T>: PlistContainerDelegate {
     }
     
     open func prepare() {
-        if !configuration.path.isExists {
+        if !FileManager.default.fileExists(atPath: configuration.path) {
             isPrepareToWrite = true
             if configuration.creatFileSynchorizedIfNotExists {
                 do {
                     let data = try configuration.encoder.encodeContainer(container)
-                    try configuration.path.writeData(data)
+                    try data.write(to: URL(fileURLWithPath: configuration.path))
                 } catch {
                     delegate?.plist(errorOccurred: .write(error))
                 }

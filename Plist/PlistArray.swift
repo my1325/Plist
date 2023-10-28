@@ -153,10 +153,12 @@ public final class PlistArray: PlistContainer<[Any]> {
 
 extension PlistArray {
     private func invokeObserverWithValue(_ value: Any?, at index: Int) {
-        let _list = observerList[index] ?? []
-        for o in _list {
-            guard !o.isNil else { continue }
-            o.plistDictionary(self, valueChangedAt: index, with: value)
+        DispatchQueue.main.async {
+            let _list = self.observerList[index] ?? []
+            for o in _list {
+                guard !o.isNil else { continue }
+                o.plistDictionary(self, valueChangedAt: index, with: value)
+            }
         }
     }
     

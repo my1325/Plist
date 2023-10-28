@@ -6,11 +6,6 @@
 //
 
 import Foundation
-#if canImport(FilePath)
-import FilePath
-#else
-import GeFilePath
-#endif
 
 public protocol PlistIsBasicCodableType {}
 extension Int: PlistIsBasicCodableType {}
@@ -82,7 +77,7 @@ public protocol PlistContainerDelegate: AnyObject {
 }
 
 public struct PlistContainerConfiguration {
-    public let path: FilePath
+    public let path: String
     public let decoder: PlistContainerDecoder
     public let encoder: PlistContainerEncoder
     public let shouldCacheOriginData: Bool
@@ -125,7 +120,13 @@ open class PlistJSONCoder: PlistContainerEncoder, PlistContainerDecoder {
 
 public extension PlistContainerConfiguration {
     
-    static func defaultPlistConfiguration(with path: FilePath, shouldCacheOriginData: Bool = true, readContainerSynchronize: Bool = true) -> PlistContainerConfiguration {
+    static func defaultPlistConfiguration(named name: String) -> PlistContainerConfiguration {
+        var document = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
+        document.append("/\(name)")
+        return defaultPlistConfiguration(with: document)
+    }
+    
+    static func defaultPlistConfiguration(with path: String, shouldCacheOriginData: Bool = true, readContainerSynchronize: Bool = true) -> PlistContainerConfiguration {
         let decoder = PlistDefaultCoder()
         let encoder = PlistDefaultCoder()
         return PlistContainerConfiguration(path: path,
@@ -137,7 +138,13 @@ public extension PlistContainerConfiguration {
                                            isASynchornizedCache: false)
     }
     
-    static func JSONPlistConfiguration(with path: FilePath, shouldCacheOriginData: Bool = true, readContainerSynchronize: Bool = true) -> PlistContainerConfiguration {
+    static func JSONPlistConfiguration(named name: String, shouldCacheOriginData: Bool = true, readContainerSynchronize: Bool = true) -> PlistContainerConfiguration {
+        var document = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
+        document.append("/\(name)")
+        return JSONPlistConfiguration(with: document)
+    }
+    
+    static func JSONPlistConfiguration(with path: String, shouldCacheOriginData: Bool = true, readContainerSynchronize: Bool = true) -> PlistContainerConfiguration {
         let decoder = PlistJSONCoder()
         let encoder = PlistJSONCoder()
         return PlistContainerConfiguration(path: path,
